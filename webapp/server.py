@@ -8,6 +8,7 @@ import io
 import csv
 import json
 import math
+import datetime
 from functools import wraps
 from flask import Flask, request, jsonify, send_file, session
 from flask_cors import CORS
@@ -21,10 +22,15 @@ CORS(app, supports_credentials=True)
 
 # ── Config ──────────────────────────────────────────────────────────────────
 CSV_PATH = os.path.join(os.path.dirname(__file__), "..", "epallet_dry_products.csv")
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "uploads")
+UPLOAD_LOG = os.path.join(os.path.dirname(__file__), "..", "upload_history.json")
 USERS = {
     "admin": "epallet2026",
     "michael": "LAFoods2026",
 }
+
+# Ensure upload directory exists
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # ── Load data once at startup ──────────────────────────────────────────────
 def load_data():
@@ -77,6 +83,20 @@ def load_data():
 print("Loading data...")
 DF = load_data()
 print(f"Loaded {len(DF)} products across {DF['category'].nunique()} categories from {DF['manufacturer'].nunique()} manufacturers")
+
+# ── Upload history helper ──────────────────────────────────────────────────
+def load_upload_history():
+    if os.path.exists(UPLOAD_LOG):
+        try:
+            with open(UPLOAD_LOG, "r") as f:
+                return json.load(f)
+        except:
+            return []
+    return []
+
+def save_upload_history(history):
+    with open(UPLOAD_LOG, "w") as f:
+        json.dump(history, f, indent=2)
 
 # ── Auth decorator ─────────────────────────────────────────────────────────
 def login_required(f):
@@ -234,7 +254,130 @@ def products():
         "total_pages": math.ceil(total / per_page),
     })
 
-# ── Analytics routes ───────────────────────────────────────────────────────
+# ── New Analytics routes ───────────────────────────────────────────────────
+
+@app.route("/api/analytics/best-value")
+@login_required
+def best_value():
+    """Best value products — lowest price-per-oz with good availability"""
+    df = apply_filters(DF.copy(), request.args)
+    df_valid = df[(df["price_per_oz"] != "") & (df["cases_per_pallet"] != "")].copy()
+    df_valid["price_per_oz"] = pd.to_numeric(df_valid["price_per_oz"], errors="coerce")
+    df_valid["cases_per_pallet"] = pd.to_numeric(df_valid["cases_per_pallet"], errors="coerce")
+    df_valid["price_per_unit"] = pd.to_numeric(df_valid["price_per_unit"], errors="coerce")
+    df_valid["delivered_price"] = pd.to_numeric(df_valid["delivered_price"], errors="coerce")
+    df_valid = df_valid.dropna(subset=["price_per_oz", "cases_per_pallet"])
+    
+    # Value score: lower price_per_oz + higher cases_per_pallet = better value
+    if len(df_valid) > 0:
+        poz_norm = 1 - (df_valid["price_per_oz"] - df_valid["price_per_oz"].min()) / (df_valid["price_per_oz"].max() - df_valid["price_per_oz"].min() + 0.0001)
+        cpp_norm = (df_valid["cases_per_pallet"] - df_valid["cases_per_pallet"].min()) / (df_valid["cases_per_pallet"].max() - df_valid["cases_per_pallet"].min() + 0.0001)
+        df_valid["value_score"] = (poz_norm * 0.6 + cpp_norm * 0.4).round(3)
+    else:
+        df_valid["value_score"] = 0
+    
+    limit = int(request.args.get("limit", 30))
+    direction = request.args.get("direction", "desc")
+    ascending = direction == "asc"
+    df_sorted = df_valid.sort_values("value_score", ascending=ascending).head(limit)
+    
+    cols = ["product", "manufacturer", "category", "price_per_unit", "price_per_oz",
+            "delivered_price", "pack_size_raw", "cases_per_pallet", "lead_time_days",
+            "available", "mixed_pallet", "value_score"]
+    return jsonify(df_sorted[cols].fillna("").to_dict(orient="records"))
+
+@app.route("/api/analytics/pallet-efficiency")
+@login_required
+def pallet_efficiency():
+    """Pallet efficiency — cost per pallet vs cases per pallet"""
+    df = apply_filters(DF.copy(), request.args)
+    df_valid = df[(df["delivered_price"] != "") & (df["cases_per_pallet"] != "")].copy()
+    df_valid["delivered_price"] = pd.to_numeric(df_valid["delivered_price"], errors="coerce")
+    df_valid["cases_per_pallet"] = pd.to_numeric(df_valid["cases_per_pallet"], errors="coerce")
+    df_valid = df_valid.dropna(subset=["delivered_price", "cases_per_pallet"])
+    df_valid["cost_per_case"] = (df_valid["delivered_price"] / df_valid["cases_per_pallet"]).round(2)
+    
+    grouped = df_valid.groupby("category").agg(
+        avg_cases_per_pallet=("cases_per_pallet", "mean"),
+        avg_delivered=("delivered_price", "mean"),
+        avg_cost_per_case=("cost_per_case", "mean"),
+        product_count=("product", "count"),
+    ).round(2).reset_index()
+    
+    return jsonify(grouped.sort_values("avg_cost_per_case").to_dict(orient="records"))
+
+@app.route("/api/analytics/cost-per-oz")
+@login_required
+def cost_per_oz_analysis():
+    """Cost per oz breakdown by category"""
+    df = apply_filters(DF.copy(), request.args)
+    df_valid = df[df["price_per_oz"] != ""].copy()
+    df_valid["price_per_oz"] = pd.to_numeric(df_valid["price_per_oz"], errors="coerce")
+    df_valid = df_valid.dropna(subset=["price_per_oz"])
+    
+    grouped = df_valid.groupby("category").agg(
+        avg_per_oz=("price_per_oz", "mean"),
+        min_per_oz=("price_per_oz", "min"),
+        max_per_oz=("price_per_oz", "max"),
+        median_per_oz=("price_per_oz", "median"),
+        count=("product", "count"),
+    ).round(4).reset_index()
+    
+    return jsonify(grouped.sort_values("avg_per_oz").to_dict(orient="records"))
+
+@app.route("/api/analytics/availability")
+@login_required
+def availability_analysis():
+    """Availability and mixed pallet analysis"""
+    df = apply_filters(DF.copy(), request.args)
+    
+    total = len(df)
+    available_yes = int((df["available"] == "Yes").sum())
+    available_no = total - available_yes
+    mixed_yes = int((df["mixed_pallet"] == "Yes").sum())
+    mixed_no = total - mixed_yes
+    promo_yes = int((df["has_promo"] == "Yes").sum())
+    
+    # By category
+    cat_avail = df.groupby("category").agg(
+        total=("product", "count"),
+        available=("available", lambda x: (x == "Yes").sum()),
+        mixed_pallet=("mixed_pallet", lambda x: (x == "Yes").sum()),
+    ).reset_index()
+    cat_avail["avail_pct"] = (cat_avail["available"] / cat_avail["total"] * 100).round(1)
+    cat_avail["mixed_pct"] = (cat_avail["mixed_pallet"] / cat_avail["total"] * 100).round(1)
+    
+    return jsonify({
+        "totals": {
+            "total": total,
+            "available": available_yes,
+            "unavailable": available_no,
+            "mixed_pallet": mixed_yes,
+            "non_mixed": mixed_no,
+            "promo": promo_yes,
+        },
+        "by_category": cat_avail.to_dict(orient="records"),
+    })
+
+@app.route("/api/analytics/lead-time-summary")
+@login_required
+def lead_time_summary():
+    """Lead time stats by category"""
+    df = apply_filters(DF.copy(), request.args)
+    df_valid = df[df["lead_time_days"] != ""].copy()
+    df_valid["lead_time_days"] = pd.to_numeric(df_valid["lead_time_days"], errors="coerce")
+    df_valid = df_valid.dropna(subset=["lead_time_days"])
+    
+    grouped = df_valid.groupby("category").agg(
+        avg_lead=("lead_time_days", "mean"),
+        min_lead=("lead_time_days", "min"),
+        max_lead=("lead_time_days", "max"),
+        count=("product", "count"),
+    ).round(1).reset_index()
+    
+    return jsonify(grouped.sort_values("avg_lead").to_dict(orient="records"))
+
+# ── Existing analytics routes ─────────────────────────────────────────────
 @app.route("/api/analytics/by-category")
 @login_required
 def analytics_by_category():
@@ -533,6 +676,184 @@ def export_csv():
         as_attachment=True,
         mimetype="text/csv"
     )
+
+# ── Upload route ───────────────────────────────────────────────────────────
+@app.route("/api/upload", methods=["POST"])
+@login_required
+def upload_data():
+    """Upload CSV or XLSX file to merge into the dataset"""
+    global DF
+    
+    if "file" not in request.files:
+        return jsonify({"error": "No file provided"}), 400
+    
+    file = request.files["file"]
+    if not file.filename:
+        return jsonify({"error": "No file selected"}), 400
+    
+    filename = file.filename.lower()
+    if not (filename.endswith(".csv") or filename.endswith(".xlsx") or filename.endswith(".xls")):
+        return jsonify({"error": "Only CSV and Excel files are supported"}), 400
+    
+    try:
+        # Read the uploaded file
+        if filename.endswith(".csv"):
+            upload_df = pd.read_csv(file)
+        else:
+            upload_df = pd.read_excel(file)
+        
+        if len(upload_df) == 0:
+            return jsonify({"error": "File is empty"}), 400
+        
+        # Normalize column names: lowercase, strip, replace spaces with underscores
+        upload_df.columns = [c.strip().lower().replace(" ", "_").replace("/", "_per_") for c in upload_df.columns]
+        
+        # Column mapping — try to match common column names to our schema
+        col_map = {
+            "delivered_price": ["delivered_price", "delivered price", "pallet_price", "pallet price", "price"],
+            "delivered_case_price": ["delivered_case_price", "case_price", "case price"],
+            "price_per_unit": ["price_per_unit", "unit_price", "unit price", "price_per_unit"],
+            "price_per_oz": ["price_per_oz", "price per oz", "oz_price"],
+            "pack_size_raw": ["pack_size_raw", "pack_size", "pack size", "size"],
+            "cases_per_pallet": ["cases_per_pallet", "cases per pallet", "cases_pallet", "cs_per_pallet"],
+            "lead_time_days": ["lead_time_days", "lead_time", "lead time", "leadtime"],
+            "category": ["category", "cat", "product_category"],
+            "manufacturer": ["manufacturer", "brand", "mfr", "vendor", "supplier"],
+            "product": ["product", "product_name", "name", "item", "description", "item_name"],
+            "upc": ["upc", "upc_code", "barcode", "ean", "gtin"],
+            "description": ["description", "desc", "product_description", "item_description"],
+            "mixed_pallet": ["mixed_pallet", "mixed pallet", "mixed"],
+            "available": ["available", "in_stock", "availability", "in stock"],
+            "has_promo": ["has_promo", "promo", "promotion", "on_sale"],
+            "min_pallet_qty": ["min_pallet_qty", "min_qty", "minimum_qty", "moq"],
+            "food_type": ["food_type", "type"],
+            "main_category": ["main_category"],
+            "sub_category": ["sub_category"],
+        }
+        
+        # Apply column mapping
+        rename_map = {}
+        for target, sources in col_map.items():
+            for src in sources:
+                normalized = src.strip().lower().replace(" ", "_").replace("/", "_per_")
+                if normalized in upload_df.columns and target not in upload_df.columns:
+                    rename_map[normalized] = target
+                    break
+        upload_df = upload_df.rename(columns=rename_map)
+        
+        # Determine which required columns we have
+        our_cols = set(DF.columns)
+        upload_cols = set(upload_df.columns)
+        matched_cols = our_cols & upload_cols
+        
+        # Must have at least product or description to be useful
+        if "product" not in upload_df.columns and "description" not in upload_df.columns:
+            # Try to use first text column as product
+            for c in upload_df.columns:
+                if upload_df[c].dtype == "object" and c not in ["upc", "category", "manufacturer"]:
+                    upload_df = upload_df.rename(columns={c: "product"})
+                    break
+        
+        if "product" not in upload_df.columns:
+            return jsonify({"error": "Could not identify a product/name column. Please ensure your file has a 'Product' column."}), 400
+        
+        # Fill missing columns with empty strings
+        for col in DF.columns:
+            if col not in upload_df.columns:
+                upload_df[col] = ""
+        
+        # Keep only our columns, in the right order
+        upload_df = upload_df[[c for c in DF.columns if c in upload_df.columns]]
+        
+        # Add missing columns as empty
+        for c in DF.columns:
+            if c not in upload_df.columns:
+                upload_df[c] = ""
+        upload_df = upload_df[DF.columns]
+        
+        # Tag with data source
+        upload_df["data_source"] = "upload:" + file.filename
+        upload_df["upload_date"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        
+        # Add data_source to main DF if not present
+        if "data_source" not in DF.columns:
+            DF["data_source"] = "epallet_scrape"
+            DF["upload_date"] = "2026-03-05"
+        
+        # Clean numeric columns
+        for col in ["delivered_price", "delivered_case_price", "price_per_unit", "price_per_oz",
+                    "cases_per_pallet", "lead_time_days", "min_pallet_qty"]:
+            upload_df[col] = pd.to_numeric(upload_df[col], errors="coerce")
+        
+        # Generate product IDs for new rows
+        max_id = 0
+        if "product_id" in DF.columns:
+            existing_ids = pd.to_numeric(DF["product_id"], errors="coerce").dropna()
+            if len(existing_ids) > 0:
+                max_id = int(existing_ids.max())
+        upload_df["product_id"] = range(max_id + 1, max_id + 1 + len(upload_df))
+        
+        rows_before = len(DF)
+        
+        # Merge: append new data
+        DF = pd.concat([DF, upload_df], ignore_index=True)
+        DF = DF.fillna("")
+        
+        rows_added = len(upload_df)
+        rows_after = len(DF)
+        
+        # Save updated CSV
+        DF.to_csv(CSV_PATH, index=False)
+        
+        # Save the uploaded file
+        save_path = os.path.join(UPLOAD_DIR, f"{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}")
+        # We need to reset the file pointer, but it's been read — save from df
+        upload_df.to_csv(save_path.replace('.xlsx', '.csv').replace('.xls', '.csv'), index=False)
+        
+        # Log upload
+        history = load_upload_history()
+        history.append({
+            "filename": file.filename,
+            "timestamp": datetime.datetime.now().isoformat(),
+            "rows_added": rows_added,
+            "columns_matched": list(matched_cols),
+            "columns_missing": list(our_cols - upload_cols),
+            "uploaded_by": session.get("username", "unknown"),
+            "total_after": rows_after,
+        })
+        save_upload_history(history)
+        
+        return jsonify({
+            "ok": True,
+            "rows_added": rows_added,
+            "total_products": rows_after,
+            "columns_matched": sorted(list(matched_cols)),
+            "columns_missing": sorted(list(our_cols - upload_cols)),
+            "filename": file.filename,
+        })
+    
+    except Exception as e:
+        return jsonify({"error": f"Failed to process file: {str(e)}"}), 500
+
+@app.route("/api/upload/history")
+@login_required
+def upload_history():
+    """Get upload history"""
+    history = load_upload_history()
+    return jsonify(history)
+
+@app.route("/api/data-sources")
+@login_required
+def data_sources():
+    """Get data source breakdown"""
+    df = DF
+    if "data_source" not in df.columns:
+        return jsonify([{"source": "epallet_scrape", "count": len(df), "pct": 100.0}])
+    
+    sources = df["data_source"].value_counts().reset_index()
+    sources.columns = ["source", "count"]
+    sources["pct"] = (sources["count"] / sources["count"].sum() * 100).round(1)
+    return jsonify(sources.to_dict(orient="records"))
 
 # ── Serve frontend ─────────────────────────────────────────────────────────
 @app.route("/")

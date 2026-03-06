@@ -820,6 +820,204 @@ table tr:hover td { background: var(--bg-hover); }
 .empty-state svg { width: 48px; height: 48px; margin: 0 auto 12px; stroke: var(--text-placeholder); fill: none; stroke-width: 1.2; }
 .empty-state h3 { font-size: 1rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
 .empty-state p { font-size: 0.86rem; }
+
+/* ── Upload Page ───────────────────────────────────────────────────────── */
+.upload-zone {
+  border: 2px dashed var(--border-secondary);
+  border-radius: var(--radius-xl);
+  padding: 48px 32px;
+  text-align: center;
+  background: var(--bg-secondary);
+  transition: all var(--transition);
+  cursor: pointer;
+  position: relative;
+}
+.upload-zone:hover,
+.upload-zone.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+.upload-zone .upload-icon {
+  width: 64px; height: 64px;
+  margin: 0 auto 16px;
+  background: var(--accent-subtle);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.upload-zone .upload-icon svg {
+  width: 28px; height: 28px;
+  stroke: var(--accent);
+  fill: none;
+  stroke-width: 1.8;
+}
+.upload-zone h3 {
+  font-size: 1.07rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+}
+.upload-zone p {
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  margin-bottom: 4px;
+}
+.upload-zone .file-types {
+  font-size: 0.79rem;
+  color: var(--text-tertiary);
+}
+.upload-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.upload-progress {
+  margin-top: 20px;
+  display: none;
+}
+.upload-progress.active { display: block; }
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.progress-bar .progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 300ms ease;
+  width: 0%;
+}
+.progress-text {
+  font-size: 0.79rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+.upload-result {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  display: none;
+}
+.upload-result.active { display: block; }
+.upload-result.success { background: var(--success-bg); border: 1px solid rgba(23,178,106,.2); }
+.upload-result.error { background: var(--error-bg); border: 1px solid rgba(240,68,56,.2); }
+.upload-result h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.upload-result.success h4 { color: var(--success); }
+.upload-result.error h4 { color: var(--error); }
+.upload-result .result-details {
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+.upload-result .result-details strong { color: var(--text-primary); }
+.upload-history-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+.upload-history-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  box-shadow: var(--shadow-xs);
+}
+.upload-history-card .hist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.upload-history-card .hist-filename {
+  font-weight: 600;
+  font-size: 0.93rem;
+  color: var(--text-primary);
+}
+.upload-history-card .hist-time {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+.upload-history-card .hist-stat {
+  font-size: 0.79rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+.upload-history-card .hist-stat strong { color: var(--text-primary); }
+
+/* ── Data Source Breakdown ─────────────────────────────────────────────── */
+.source-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.source-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-xs);
+}
+.source-card .source-name {
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.source-card .source-name .dot-indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.source-card .source-count {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.source-card .source-pct {
+  font-size: 0.79rem;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+/* ── Best Value Score Bar ──────────────────────────────────────────────── */
+.value-bar-wrap {
+  width: 100%;
+  max-width: 120px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.value-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.value-bar .value-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--success);
+}
+.value-score { font-size: 0.79rem; font-weight: 600; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -898,8 +1096,28 @@ table tr:hover td { background: var(--bg-hover); }
           <svg viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="2.5"/><circle cx="16.5" cy="8.5" r="2.5"/><circle cx="12" cy="18" r="1.5"/><circle cx="18" cy="14" r="1.5"/><circle cx="9" cy="9" r="1.5"/></svg>
           Correlations
         </button>
+        <button class="nav-item" data-page="analytics-bestvalue" onclick="showPage('analytics-bestvalue')">
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          Best Value
+        </button>
+        <button class="nav-item" data-page="analytics-pallet" onclick="showPage('analytics-pallet')">
+          <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4a2 2 0 012 2v6a2 2 0 01-2 2H6"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          Pallet Efficiency
+        </button>
+        <button class="nav-item" data-page="analytics-costperoz" onclick="showPage('analytics-costperoz')">
+          <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          Cost per Oz
+        </button>
 
         <div class="nav-section-label">Data</div>
+        <button class="nav-item" data-page="upload" onclick="showPage('upload')">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload Data
+        </button>
+        <button class="nav-item" data-page="data-sources" onclick="showPage('data-sources')">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          Data Sources
+        </button>
         <button class="nav-item" data-page="export" onclick="showPage('export')">
           <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Export Data
@@ -958,6 +1176,14 @@ table tr:hover td { background: var(--bg-hover); }
             <div class="chart-card">
               <h3><span class="dot"></span>Avg Unit Price by Category</h3>
               <div class="chart-container"><canvas id="chart-dash-avg-prices"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3><span class="dot" style="background:#7A5AF8"></span>Pallet Efficiency (Cost/Case)</h3>
+              <div class="chart-container"><canvas id="chart-dash-pallet"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3><span class="dot" style="background:#EE46BC"></span>Lead Time Distribution</h3>
+              <div class="chart-container"><canvas id="chart-dash-leadtime"></canvas></div>
             </div>
           </div>
         </div>
@@ -1088,6 +1314,145 @@ table tr:hover td { background: var(--bg-hover); }
             <div class="chart-card">
               <h3><span class="dot"></span>Lead Time Distribution</h3>
               <div class="chart-container"><canvas id="chart-lead-time"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════ BEST VALUE ═══════════ -->
+        <div class="page" id="page-analytics-bestvalue">
+          <div class="stats-grid" id="bestvalue-stats"></div>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3><span class="dot" style="background:#17B26A"></span>Best Value Score Distribution</h3>
+              <div class="chart-container"><canvas id="chart-bestvalue-dist"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3><span class="dot" style="background:#F79009"></span>Price per Oz vs Cases per Pallet</h3>
+              <div class="chart-container"><canvas id="chart-bestvalue-scatter"></canvas></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:20px">
+            <div class="card-header">
+              <h3>Top 30 Best Value Products</h3>
+              <div style="display:flex;gap:8px">
+                <button class="btn-sm primary" onclick="loadBestValueAnalytics('desc')">Best Value</button>
+                <button class="btn-sm" onclick="loadBestValueAnalytics('asc')">Worst Value</button>
+              </div>
+            </div>
+            <div class="card-body" style="overflow-x:auto;padding:0">
+              <table class="analytics-table" id="bestvalue-table">
+                <thead>
+                  <tr><th>#</th><th>Product</th><th>Manufacturer</th><th>Category</th><th>Price/Unit</th><th>Price/Oz</th><th>Cases/Pallet</th><th>Value Score</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════ PALLET EFFICIENCY ═══════════ -->
+        <div class="page" id="page-analytics-pallet">
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3><span class="dot" style="background:#7A5AF8"></span>Avg Cases per Pallet by Category</h3>
+              <div class="chart-container"><canvas id="chart-pallet-cases"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3><span class="dot" style="background:#EE46BC"></span>Avg Cost per Case by Category</h3>
+              <div class="chart-container"><canvas id="chart-pallet-cost"></canvas></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:20px">
+            <div class="card-header"><h3>Pallet Efficiency by Category</h3></div>
+            <div class="card-body" style="overflow-x:auto;padding:0">
+              <table class="analytics-table" id="pallet-detail-table">
+                <thead>
+                  <tr><th>Category</th><th>Products</th><th>Avg Cases/Pallet</th><th>Avg Delivered Price</th><th>Avg Cost/Case</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════ COST PER OZ ═══════════ -->
+        <div class="page" id="page-analytics-costperoz">
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3><span class="dot" style="background:#15B79E"></span>Avg Cost per Oz by Category</h3>
+              <div class="chart-container"><canvas id="chart-cpo-avg"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3><span class="dot" style="background:#F04438"></span>Cost per Oz Range (Min–Max)</h3>
+              <div class="chart-container"><canvas id="chart-cpo-range"></canvas></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:20px">
+            <div class="card-header"><h3>Cost per Oz by Category Detail</h3></div>
+            <div class="card-body" style="overflow-x:auto;padding:0">
+              <table class="analytics-table" id="cpo-detail-table">
+                <thead>
+                  <tr><th>Category</th><th>Products</th><th>Avg $/oz</th><th>Min $/oz</th><th>Max $/oz</th><th>Median $/oz</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════ UPLOAD DATA ═══════════ -->
+        <div class="page" id="page-upload">
+          <div class="card" style="margin-bottom:24px">
+            <div class="card-header"><h3>Upload Product Data</h3></div>
+            <div class="card-body">
+              <div class="upload-zone" id="upload-zone">
+                <div class="upload-icon">
+                  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <h3>Drag & drop your file here</h3>
+                <p>or click to browse files</p>
+                <p class="file-types">Supports CSV (.csv) and Excel (.xlsx, .xls)</p>
+                <input type="file" id="upload-input" accept=".csv,.xlsx,.xls">
+              </div>
+              <div class="upload-progress" id="upload-progress">
+                <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+                <div class="progress-text" id="progress-text">Uploading...</div>
+              </div>
+              <div class="upload-result" id="upload-result"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Upload History</h3></div>
+            <div class="card-body" id="upload-history-area">
+              <div class="loading-spinner"><div class="spinner"></div>Loading history...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════ DATA SOURCES ═══════════ -->
+        <div class="page" id="page-data-sources">
+          <div class="source-grid" id="source-grid">
+            <div class="loading-spinner"><div class="spinner"></div>Loading sources...</div>
+          </div>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3><span class="dot" style="background:#6172F3"></span>Data Source Distribution</h3>
+              <div class="chart-container"><canvas id="chart-sources-donut"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3><span class="dot" style="background:#2E90FA"></span>Availability Breakdown</h3>
+              <div class="chart-container"><canvas id="chart-availability"></canvas></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:20px">
+            <div class="card-header"><h3>Availability &amp; Mixed Pallet by Category</h3></div>
+            <div class="card-body" style="overflow-x:auto;padding:0">
+              <table class="analytics-table" id="avail-detail-table">
+                <thead>
+                  <tr><th>Category</th><th>Total</th><th>Available</th><th>Avail %</th><th>Mixed Pallet</th><th>Mixed %</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -1280,7 +1645,12 @@ const pageMeta = {
   'analytics-manufacturer': { title: 'Manufacturer Analytics', subtitle: 'Insights by manufacturer' },
   'analytics-pricing':      { title: 'Pricing Analysis',    subtitle: 'Price distributions, extremes, and ranges' },
   'analytics-correlation':  { title: 'Correlations',        subtitle: 'Relationships between price, weight, and lead time' },
-  'export':                 { title: 'Export Data',          subtitle: 'Download your data as Excel or CSV' },
+  'analytics-bestvalue':    { title: 'Best Value Analysis', subtitle: 'Products with the best value score (price/oz + pallet efficiency)' },
+  'analytics-pallet':       { title: 'Pallet Efficiency',   subtitle: 'Cases per pallet and cost-per-case analysis by category' },
+  'analytics-costperoz':    { title: 'Cost per Oz',         subtitle: 'Oz-level pricing across categories' },
+  'upload':                 { title: 'Upload Data',         subtitle: 'Import new product data via CSV or Excel' },
+  'data-sources':           { title: 'Data Sources',        subtitle: 'Track where your product data comes from' },
+  'export':                 { title: 'Export Data',         subtitle: 'Download your data as Excel or CSV' },
 };
 
 function showPage(page) {
@@ -1302,6 +1672,11 @@ function renderCurrentPage() {
     case 'analytics-manufacturer': loadManufacturerAnalytics(); break;
     case 'analytics-pricing': loadPricingAnalytics(); break;
     case 'analytics-correlation': loadCorrelationAnalytics(); break;
+    case 'analytics-bestvalue': loadBestValueAnalytics(); break;
+    case 'analytics-pallet': loadPalletAnalytics(); break;
+    case 'analytics-costperoz': loadCostPerOzAnalytics(); break;
+    case 'upload': loadUploadPage(); break;
+    case 'data-sources': loadDataSources(); break;
     case 'export': updateExportSummary(); break;
   }
 }
@@ -1432,21 +1807,27 @@ function resetFilters() {
    ═══════════════════════════════════════════════════════════════════════════ */
 async function loadDashboard() {
   try {
-    const [summary, catData, priceData, mfrData] = await Promise.all([
+    const [summary, catData, priceData, mfrData, availData, palletData, ltData] = await Promise.all([
       apiJson('/api/summary'),
       apiJson('/api/analytics/by-category'),
       apiJson('/api/analytics/price-distribution?bins=25'),
       apiJson('/api/analytics/by-manufacturer?limit=15&sort=count'),
+      apiJson('/api/analytics/availability'),
+      apiJson('/api/analytics/pallet-efficiency'),
+      apiJson('/api/analytics/lead-time'),
     ]);
     summaryData = summary;
-    renderStats(summary);
-    renderDashboardCharts(catData, priceData, mfrData);
+    renderStats(summary, availData);
+    renderDashboardCharts(catData, priceData, mfrData, palletData, ltData);
   } catch (err) {
     console.error('Dashboard error:', err);
   }
 }
 
-function renderStats(s) {
+function renderStats(s, avail) {
+  const t = avail?.totals || {};
+  const availPct = t.total ? ((t.available / t.total) * 100).toFixed(1) : '—';
+  const mixedPct = t.total ? ((t.mixed_pallet / t.total) * 100).toFixed(1) : '—';
   document.getElementById('stats-grid').innerHTML = `
     <div class="stat-card">
       <div class="stat-label">
@@ -1479,6 +1860,22 @@ function renderStats(s) {
     </div>
     <div class="stat-card">
       <div class="stat-label">
+        <svg class="stat-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Availability
+      </div>
+      <div class="stat-value">${availPct}%</div>
+      <div class="stat-sub">${(t.available || 0).toLocaleString()} of ${(t.total || 0).toLocaleString()} products</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">
+        <svg class="stat-icon" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4a2 2 0 012 2v6a2 2 0 01-2 2H6"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        Mixed Pallet
+      </div>
+      <div class="stat-value">${mixedPct}%</div>
+      <div class="stat-sub">${(t.mixed_pallet || 0).toLocaleString()} products</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">
         <svg class="stat-icon" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
         Promos Active
       </div>
@@ -1486,7 +1883,7 @@ function renderStats(s) {
     </div>
     <div class="stat-card">
       <div class="stat-label">
-        <svg class="stat-icon" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4a2 2 0 012 2v6a2 2 0 01-2 2H6"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <svg class="stat-icon" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
         Avg Delivered Price
       </div>
       <div class="stat-value">$${s.avg_delivered_price.toFixed(2)}</div>
@@ -1494,7 +1891,7 @@ function renderStats(s) {
   `;
 }
 
-function renderDashboardCharts(catData, priceData, mfrData) {
+function renderDashboardCharts(catData, priceData, mfrData, palletData, ltData) {
   // Sort categories by count
   const sorted = [...catData].sort((a, b) => b.count - a.count);
   const top12 = sorted.slice(0, 12);
@@ -1595,6 +1992,49 @@ function renderDashboardCharts(catData, priceData, mfrData) {
       },
     },
   });
+
+  // Pallet efficiency chart
+  if (palletData && palletData.length) {
+    const pe = palletData.slice(0, 12);
+    makeChart('chart-dash-pallet', {
+      type: 'bar',
+      data: {
+        labels: pe.map(d => d.category),
+        datasets: [{
+          data: pe.map(d => d.avg_cost_per_case),
+          backgroundColor: '#7A5AF8',
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        ...baseChartOpts(),
+        scales: {
+          ...baseChartOpts().scales,
+          x: { ...baseChartOpts().scales.x, ticks: { ...baseChartOpts().scales.x.ticks, maxRotation: 45 } },
+          y: { ...baseChartOpts().scales.y, ticks: { ...baseChartOpts().scales.y.ticks, callback: v => '$' + v } },
+        },
+      },
+    });
+  }
+
+  // Lead time chart
+  if (ltData && ltData.length) {
+    const ltAgg = {};
+    ltData.forEach(d => { ltAgg[d.lead_time_days] = (ltAgg[d.lead_time_days] || 0) + d.count; });
+    const ltSorted = Object.entries(ltAgg).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+    makeChart('chart-dash-leadtime', {
+      type: 'bar',
+      data: {
+        labels: ltSorted.map(d => d[0] + ' days'),
+        datasets: [{
+          data: ltSorted.map(d => d[1]),
+          backgroundColor: '#EE46BC',
+          borderRadius: 4,
+        }]
+      },
+      options: baseChartOpts(),
+    });
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -2045,6 +2485,450 @@ async function loadCorrelationAnalytics() {
       options: baseChartOpts(),
     });
   } catch (err) { console.error(err); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANALYTICS: BEST VALUE
+   ═══════════════════════════════════════════════════════════════════════════ */
+async function loadBestValueAnalytics(direction = 'desc') {
+  try {
+    const data = await apiJson('/api/analytics/best-value?limit=30&direction=' + direction);
+    
+    if (data.length > 0) {
+      // Stats
+      const avgScore = (data.reduce((s, d) => s + d.value_score, 0) / data.length).toFixed(3);
+      const avgPoz = (data.reduce((s, d) => s + (parseFloat(d.price_per_oz) || 0), 0) / data.length).toFixed(4);
+      const avgCpp = (data.reduce((s, d) => s + (parseFloat(d.cases_per_pallet) || 0), 0) / data.length).toFixed(0);
+      document.getElementById('bestvalue-stats').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-label"><svg class="stat-icon" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Avg Value Score</div>
+          <div class="stat-value">${avgScore}</div>
+          <div class="stat-sub">Top 30 products</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label"><svg class="stat-icon" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Avg Price/Oz</div>
+          <div class="stat-value">$${avgPoz}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label"><svg class="stat-icon" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/></svg>Avg Cases/Pallet</div>
+          <div class="stat-value">${avgCpp}</div>
+        </div>
+      `;
+    }
+
+    // Score distribution bar chart
+    makeChart('chart-bestvalue-dist', {
+      type: 'bar',
+      data: {
+        labels: data.map((d, i) => (i + 1) + '. ' + d.product.substring(0, 20)),
+        datasets: [{
+          data: data.map(d => d.value_score),
+          backgroundColor: data.map(d => d.value_score >= 0.7 ? '#17B26A' : d.value_score >= 0.4 ? '#F79009' : '#F04438'),
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        ...baseChartOpts(),
+        indexAxis: 'y',
+        scales: {
+          x: { ...baseChartOpts().scales.x, min: 0, max: 1, title: { display: true, text: 'Value Score', color: getTickColor(), font: { family: 'Inter', size: 11 } } },
+          y: { ...baseChartOpts().scales.y, ticks: { ...baseChartOpts().scales.y.ticks, font: { size: 8, family: 'Inter' } } },
+        },
+      },
+    });
+
+    // Scatter: Price/Oz vs Cases/Pallet
+    const categories = [...new Set(data.map(d => d.category))];
+    const colors = chartColors(categories.length);
+    const scatterSets = categories.map((cat, i) => ({
+      label: cat,
+      data: data.filter(d => d.category === cat).map(d => ({
+        x: parseFloat(d.price_per_oz) || 0,
+        y: parseFloat(d.cases_per_pallet) || 0,
+      })),
+      backgroundColor: colors[i] + 'CC',
+      pointRadius: 5,
+      pointHoverRadius: 7,
+    }));
+    makeChart('chart-bestvalue-scatter', {
+      type: 'scatter',
+      data: { datasets: scatterSets },
+      options: {
+        ...baseChartOpts(),
+        plugins: {
+          ...baseChartOpts().plugins,
+          legend: { display: true, position: 'top', labels: { color: getTickColor(), font: { family: 'Inter', size: 10 }, usePointStyle: true, pointStyleWidth: 6 } },
+        },
+        scales: {
+          x: { ...baseChartOpts().scales.x, title: { display: true, text: 'Price per Oz ($)', color: getTickColor(), font: { family: 'Inter' } }, ticks: { ...baseChartOpts().scales.x.ticks, callback: v => '$' + v.toFixed(2) } },
+          y: { ...baseChartOpts().scales.y, title: { display: true, text: 'Cases per Pallet', color: getTickColor(), font: { family: 'Inter' } } },
+        },
+      },
+    });
+
+    // Table
+    const tbody = document.querySelector('#bestvalue-table tbody');
+    tbody.innerHTML = data.map((d, i) => {
+      const score = parseFloat(d.value_score);
+      const color = score >= 0.7 ? 'var(--success)' : score >= 0.4 ? 'var(--warning)' : 'var(--error)';
+      return `<tr>
+        <td>${i + 1}</td>
+        <td style="max-width:250px;white-space:normal">${d.product}</td>
+        <td>${d.manufacturer}</td>
+        <td>${d.category}</td>
+        <td>${d.price_per_unit ? '$' + parseFloat(d.price_per_unit).toFixed(2) : '—'}</td>
+        <td>${d.price_per_oz ? '$' + parseFloat(d.price_per_oz).toFixed(4) : '—'}</td>
+        <td>${d.cases_per_pallet || '—'}</td>
+        <td><div class="value-bar-wrap"><div class="value-bar"><div class="value-fill" style="width:${(score * 100).toFixed(0)}%;background:${color}"></div></div><span class="value-score" style="color:${color}">${score.toFixed(3)}</span></div></td>
+      </tr>`;
+    }).join('');
+  } catch (err) { console.error('Best Value error:', err); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANALYTICS: PALLET EFFICIENCY
+   ═══════════════════════════════════════════════════════════════════════════ */
+async function loadPalletAnalytics() {
+  try {
+    const data = await apiJson('/api/analytics/pallet-efficiency');
+
+    makeChart('chart-pallet-cases', {
+      type: 'bar',
+      data: {
+        labels: data.map(d => d.category),
+        datasets: [{
+          data: data.map(d => d.avg_cases_per_pallet),
+          backgroundColor: '#7A5AF8',
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        ...baseChartOpts(),
+        scales: {
+          ...baseChartOpts().scales,
+          x: { ...baseChartOpts().scales.x, ticks: { ...baseChartOpts().scales.x.ticks, maxRotation: 45, font: { size: 9, family: 'Inter' } } },
+        },
+      },
+    });
+
+    makeChart('chart-pallet-cost', {
+      type: 'bar',
+      data: {
+        labels: data.map(d => d.category),
+        datasets: [{
+          data: data.map(d => d.avg_cost_per_case),
+          backgroundColor: '#EE46BC',
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        ...baseChartOpts(),
+        scales: {
+          ...baseChartOpts().scales,
+          x: { ...baseChartOpts().scales.x, ticks: { ...baseChartOpts().scales.x.ticks, maxRotation: 45, font: { size: 9, family: 'Inter' } } },
+          y: { ...baseChartOpts().scales.y, ticks: { ...baseChartOpts().scales.y.ticks, callback: v => '$' + v } },
+        },
+      },
+    });
+
+    // Detail table
+    const tbody = document.querySelector('#pallet-detail-table tbody');
+    tbody.innerHTML = data.map(d => `
+      <tr>
+        <td>${d.category}</td>
+        <td>${d.product_count}</td>
+        <td>${d.avg_cases_per_pallet.toFixed(1)}</td>
+        <td>$${d.avg_delivered.toFixed(2)}</td>
+        <td>$${d.avg_cost_per_case.toFixed(2)}</td>
+      </tr>
+    `).join('');
+  } catch (err) { console.error('Pallet error:', err); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANALYTICS: COST PER OZ
+   ═══════════════════════════════════════════════════════════════════════════ */
+async function loadCostPerOzAnalytics() {
+  try {
+    const data = await apiJson('/api/analytics/cost-per-oz');
+
+    makeChart('chart-cpo-avg', {
+      type: 'bar',
+      data: {
+        labels: data.map(d => d.category),
+        datasets: [{
+          data: data.map(d => d.avg_per_oz),
+          backgroundColor: '#15B79E',
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        ...baseChartOpts(),
+        scales: {
+          ...baseChartOpts().scales,
+          x: { ...baseChartOpts().scales.x, ticks: { ...baseChartOpts().scales.x.ticks, maxRotation: 45, font: { size: 9, family: 'Inter' } } },
+          y: { ...baseChartOpts().scales.y, ticks: { ...baseChartOpts().scales.y.ticks, callback: v => '$' + v.toFixed(2) } },
+        },
+      },
+    });
+
+    // Range chart — min/max
+    makeChart('chart-cpo-range', {
+      type: 'bar',
+      data: {
+        labels: data.map(d => d.category),
+        datasets: [
+          { label: 'Min', data: data.map(d => d.min_per_oz), backgroundColor: 'rgba(23,178,106,.6)', borderRadius: 3 },
+          { label: 'Avg', data: data.map(d => d.avg_per_oz), backgroundColor: 'rgba(46,144,250,.6)', borderRadius: 3 },
+          { label: 'Max', data: data.map(d => d.max_per_oz), backgroundColor: 'rgba(240,68,56,.6)', borderRadius: 3 },
+        ]
+      },
+      options: {
+        ...baseChartOpts(),
+        plugins: { ...baseChartOpts().plugins, legend: { display: true, labels: { color: getTickColor(), font: { family: 'Inter', size: 11 }, usePointStyle: true, pointStyleWidth: 8 } } },
+        scales: {
+          ...baseChartOpts().scales,
+          x: { ...baseChartOpts().scales.x, ticks: { ...baseChartOpts().scales.x.ticks, maxRotation: 45, font: { size: 9, family: 'Inter' } } },
+          y: { ...baseChartOpts().scales.y, ticks: { ...baseChartOpts().scales.y.ticks, callback: v => '$' + v.toFixed(2) } },
+        },
+      },
+    });
+
+    // Detail table
+    const tbody = document.querySelector('#cpo-detail-table tbody');
+    tbody.innerHTML = data.map(d => `
+      <tr>
+        <td>${d.category}</td>
+        <td>${d.count}</td>
+        <td>$${d.avg_per_oz.toFixed(4)}</td>
+        <td>$${d.min_per_oz.toFixed(4)}</td>
+        <td>$${d.max_per_oz.toFixed(4)}</td>
+        <td>$${d.median_per_oz.toFixed(4)}</td>
+      </tr>
+    `).join('');
+  } catch (err) { console.error('Cost per oz error:', err); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UPLOAD DATA
+   ═══════════════════════════════════════════════════════════════════════════ */
+function loadUploadPage() {
+  setupUploadZone();
+  loadUploadHistory();
+}
+
+function setupUploadZone() {
+  const zone = document.getElementById('upload-zone');
+  const input = document.getElementById('upload-input');
+  if (!zone || zone.dataset.bound) return;
+  zone.dataset.bound = 'true';
+
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) handleUploadFile(e.dataTransfer.files[0]);
+  });
+  input.addEventListener('change', e => {
+    if (e.target.files.length) handleUploadFile(e.target.files[0]);
+  });
+}
+
+async function handleUploadFile(file) {
+  const progressEl = document.getElementById('upload-progress');
+  const progressFill = document.getElementById('progress-fill');
+  const progressText = document.getElementById('progress-text');
+  const resultEl = document.getElementById('upload-result');
+
+  // Show progress
+  progressEl.classList.add('active');
+  resultEl.classList.remove('active');
+  resultEl.className = 'upload-result';
+  progressFill.style.width = '0%';
+  progressText.textContent = `Uploading ${file.name}...`;
+
+  // Animate progress
+  let pct = 0;
+  const interval = setInterval(() => {
+    pct = Math.min(pct + Math.random() * 15, 90);
+    progressFill.style.width = pct + '%';
+  }, 200);
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch(API + '/api/upload', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+    const data = await res.json();
+
+    clearInterval(interval);
+    progressFill.style.width = '100%';
+    progressText.textContent = 'Complete!';
+
+    if (res.ok) {
+      resultEl.className = 'upload-result success active';
+      resultEl.innerHTML = `
+        <h4>✓ Upload Successful</h4>
+        <div class="result-details">
+          <strong>${data.rows_added}</strong> rows added from <strong>${data.filename}</strong><br>
+          Total products now: <strong>${data.total_products.toLocaleString()}</strong><br>
+          Columns matched: <strong>${data.columns_matched.length}</strong> — ${data.columns_matched.join(', ')}<br>
+          ${data.columns_missing.length ? '<span style="color:var(--warning)">Missing columns: ' + data.columns_missing.join(', ') + '</span>' : ''}
+        </div>
+      `;
+      toast(`Successfully added ${data.rows_added} products!`, 'success');
+      loadUploadHistory();
+      // Refresh data
+      summaryData = null;
+    } else {
+      resultEl.className = 'upload-result error active';
+      resultEl.innerHTML = `<h4>✕ Upload Failed</h4><div class="result-details">${data.error}</div>`;
+      toast(data.error, 'error');
+    }
+  } catch (err) {
+    clearInterval(interval);
+    resultEl.className = 'upload-result error active';
+    resultEl.innerHTML = `<h4>✕ Upload Failed</h4><div class="result-details">${err.message}</div>`;
+    toast('Upload failed: ' + err.message, 'error');
+  }
+
+  setTimeout(() => progressEl.classList.remove('active'), 2000);
+}
+
+async function loadUploadHistory() {
+  const area = document.getElementById('upload-history-area');
+  if (!area) return;
+  try {
+    const history = await apiJson('/api/upload/history');
+    if (!history.length) {
+      area.innerHTML = '<div class="empty-state"><h3>No uploads yet</h3><p>Upload a CSV or Excel file to get started</p></div>';
+      return;
+    }
+    area.innerHTML = '<div class="upload-history-grid">' + history.slice().reverse().map(h => {
+      const d = new Date(h.timestamp);
+      const timeStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return `
+        <div class="upload-history-card">
+          <div class="hist-header">
+            <span class="hist-filename">${h.filename}</span>
+            <span class="hist-time">${timeStr}</span>
+          </div>
+          <div class="hist-stat"><strong>${h.rows_added}</strong> rows added by <strong>${h.uploaded_by}</strong></div>
+          <div class="hist-stat">Total after upload: <strong>${h.total_after?.toLocaleString() || '—'}</strong></div>
+          <div class="hist-stat">Matched: ${h.columns_matched?.length || 0} columns</div>
+        </div>`;
+    }).join('') + '</div>';
+  } catch (err) {
+    area.innerHTML = '<div class="empty-state"><h3>Could not load history</h3></div>';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DATA SOURCES
+   ═══════════════════════════════════════════════════════════════════════════ */
+async function loadDataSources() {
+  try {
+    const [sources, avail] = await Promise.all([
+      apiJson('/api/data-sources'),
+      apiJson('/api/analytics/availability'),
+    ]);
+
+    // Source cards
+    const colors = ['#2E90FA', '#17B26A', '#F79009', '#7A5AF8', '#EE46BC', '#15B79E'];
+    const grid = document.getElementById('source-grid');
+    grid.innerHTML = sources.map((s, i) => `
+      <div class="source-card">
+        <div class="source-name">
+          <span class="dot-indicator" style="background:${colors[i % colors.length]}"></span>
+          ${s.source}
+        </div>
+        <div class="source-count">${s.count.toLocaleString()}</div>
+        <div class="source-pct">${s.pct}% of all data</div>
+      </div>
+    `).join('');
+
+    // Add totals
+    const t = avail.totals;
+    grid.innerHTML += `
+      <div class="source-card">
+        <div class="source-name"><span class="dot-indicator" style="background:var(--success)"></span>Available Products</div>
+        <div class="source-count">${t.available.toLocaleString()}</div>
+        <div class="source-pct">${((t.available / t.total) * 100).toFixed(1)}% of total</div>
+      </div>
+      <div class="source-card">
+        <div class="source-name"><span class="dot-indicator" style="background:var(--warning)"></span>Mixed Pallet</div>
+        <div class="source-count">${t.mixed_pallet.toLocaleString()}</div>
+        <div class="source-pct">${((t.mixed_pallet / t.total) * 100).toFixed(1)}% of total</div>
+      </div>
+      <div class="source-card">
+        <div class="source-name"><span class="dot-indicator" style="background:var(--accent)"></span>Active Promos</div>
+        <div class="source-count">${t.promo.toLocaleString()}</div>
+        <div class="source-pct">${((t.promo / t.total) * 100).toFixed(1)}% of total</div>
+      </div>
+    `;
+
+    // Donut chart — sources
+    makeChart('chart-sources-donut', {
+      type: 'doughnut',
+      data: {
+        labels: sources.map(s => s.source),
+        datasets: [{
+          data: sources.map(s => s.count),
+          backgroundColor: colors.slice(0, sources.length),
+          borderWidth: 0,
+          hoverOffset: 6,
+        }]
+      },
+      options: {
+        ...baseChartOpts('doughnut'),
+        cutout: '55%',
+        plugins: {
+          ...baseChartOpts('doughnut').plugins,
+          legend: { display: true, position: 'right', labels: { color: getTickColor(), font: { family: 'Inter', size: 11 }, padding: 10, usePointStyle: true, pointStyleWidth: 8 } },
+        },
+      },
+    });
+
+    // Availability donut
+    makeChart('chart-availability', {
+      type: 'doughnut',
+      data: {
+        labels: ['Available', 'Unavailable', 'Mixed Pallet', 'Non-Mixed', 'Has Promo'],
+        datasets: [{
+          data: [t.available, t.unavailable, t.mixed_pallet, t.non_mixed, t.promo],
+          backgroundColor: ['#17B26A', '#F04438', '#F79009', '#94969C', '#2E90FA'],
+          borderWidth: 0,
+          hoverOffset: 6,
+        }]
+      },
+      options: {
+        ...baseChartOpts('doughnut'),
+        cutout: '55%',
+        plugins: {
+          ...baseChartOpts('doughnut').plugins,
+          legend: { display: true, position: 'right', labels: { color: getTickColor(), font: { family: 'Inter', size: 11 }, padding: 10, usePointStyle: true, pointStyleWidth: 8 } },
+        },
+      },
+    });
+
+    // Availability by category table
+    const tbody = document.querySelector('#avail-detail-table tbody');
+    tbody.innerHTML = avail.by_category.sort((a, b) => b.total - a.total).map(d => `
+      <tr>
+        <td>${d.category}</td>
+        <td>${d.total}</td>
+        <td>${d.available}</td>
+        <td><span class="badge ${d.avail_pct >= 80 ? 'badge-green' : d.avail_pct >= 50 ? 'badge-yellow' : 'badge-red'}">${d.avail_pct}%</span></td>
+        <td>${d.mixed_pallet}</td>
+        <td><span class="badge badge-blue">${d.mixed_pct}%</span></td>
+      </tr>
+    `).join('');
+  } catch (err) { console.error('Data sources error:', err); }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
