@@ -1,0 +1,2110 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ePallet Data Analyzer</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   DESIGN SYSTEM — Untitled UI Inspired Blue Theme
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --shadow-xs: 0 1px 2px rgba(0,0,0,.05);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0,0,0,.1), 0 10px 10px -5px rgba(0,0,0,.04);
+  --transition: 200ms ease;
+  --sidebar-w: 260px;
+}
+
+/* ── Dark theme (default) ──────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg-primary: #0C111D;
+  --bg-secondary: #161B26;
+  --bg-tertiary: #1F242F;
+  --bg-hover: #252B37;
+  --bg-active: #2B3242;
+  --bg-card: #161B26;
+  --bg-input: #1F242F;
+  --border-primary: #2B3242;
+  --border-secondary: #333B4F;
+  --border-hover: #475167;
+  --text-primary: #F5F5F6;
+  --text-secondary: #94969C;
+  --text-tertiary: #85888E;
+  --text-placeholder: #61656C;
+  --brand-50: #103456;
+  --brand-100: #15426D;
+  --brand-200: #1A5689;
+  --brand-300: #2176BD;
+  --brand-400: #2E90FA;
+  --brand-500: #53B1FD;
+  --brand-600: #84CAFF;
+  --brand-700: #B2DDFF;
+  --accent: #2E90FA;
+  --accent-hover: #1570DA;
+  --accent-subtle: rgba(46,144,250,.12);
+  --success: #17B26A;
+  --success-bg: rgba(23,178,106,.12);
+  --warning: #F79009;
+  --warning-bg: rgba(247,144,9,.12);
+  --error: #F04438;
+  --error-bg: rgba(240,68,56,.12);
+  --scrollbar-track: #161B26;
+  --scrollbar-thumb: #333B4F;
+}
+
+/* ── Light theme ───────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F9FAFB;
+  --bg-tertiary: #F2F4F7;
+  --bg-hover: #EFF1F5;
+  --bg-active: #E4E7EC;
+  --bg-card: #FFFFFF;
+  --bg-input: #FFFFFF;
+  --border-primary: #E4E7EC;
+  --border-secondary: #D0D5DD;
+  --border-hover: #98A2B3;
+  --text-primary: #101828;
+  --text-secondary: #475467;
+  --text-tertiary: #667085;
+  --text-placeholder: #98A2B3;
+  --brand-50: #EFF8FF;
+  --brand-100: #D1E9FF;
+  --brand-200: #B2DDFF;
+  --brand-300: #84CAFF;
+  --brand-400: #53B1FD;
+  --brand-500: #2E90FA;
+  --brand-600: #1570EF;
+  --brand-700: #175CD3;
+  --accent: #1570EF;
+  --accent-hover: #175CD3;
+  --accent-subtle: rgba(21,112,239,.08);
+  --success: #079455;
+  --success-bg: rgba(7,148,85,.08);
+  --warning: #DC6803;
+  --warning-bg: rgba(220,104,3,.08);
+  --error: #D92D20;
+  --error-bg: rgba(217,45,32,.08);
+  --scrollbar-track: #F2F4F7;
+  --scrollbar-thumb: #D0D5DD;
+  --shadow-xs: 0 1px 2px rgba(16,24,40,.05);
+  --shadow-sm: 0 1px 3px rgba(16,24,40,.1), 0 1px 2px rgba(16,24,40,.06);
+  --shadow-md: 0 4px 8px -2px rgba(16,24,40,.1), 0 2px 4px -2px rgba(16,24,40,.06);
+  --shadow-lg: 0 12px 16px -4px rgba(16,24,40,.08), 0 4px 6px -2px rgba(16,24,40,.03);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; scroll-behavior: smooth; }
+body {
+  font-family: var(--font);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  height: 100vh;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+img { display: block; max-width: 100%; }
+button { cursor: pointer; font-family: var(--font); }
+input, select, textarea { font-family: var(--font); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOGIN PAGE
+   ═══════════════════════════════════════════════════════════════════════════ */
+#login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: var(--bg-primary);
+}
+.login-card {
+  width: 400px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  padding: 40px;
+  box-shadow: var(--shadow-xl);
+}
+.login-logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.login-logo .logo-icon {
+  width: 48px; height: 48px;
+  background: var(--accent);
+  border-radius: var(--radius-lg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.login-logo .logo-icon svg { width: 24px; height: 24px; fill: #fff; }
+.login-logo h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.login-logo p {
+  color: var(--text-secondary);
+  font-size: 0.93rem;
+}
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.form-group input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.93rem;
+  transition: border-color var(--transition);
+  outline: none;
+}
+.form-group input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+.form-group input::placeholder { color: var(--text-placeholder); }
+.btn-primary {
+  width: 100%;
+  padding: 10px 18px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.93rem;
+  font-weight: 600;
+  transition: background var(--transition);
+  margin-top: 8px;
+}
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+.login-error {
+  background: var(--error-bg);
+  color: var(--error);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.86rem;
+  margin-bottom: 16px;
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   APP LAYOUT
+   ═══════════════════════════════════════════════════════════════════════════ */
+#app-page { display: none; height: 100vh; }
+.app-layout { display: flex; height: 100vh; }
+
+/* ── Sidebar ───────────────────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-primary);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+}
+.sidebar-header {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border-primary);
+}
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sidebar-brand .brand-icon {
+  width: 36px; height: 36px;
+  background: var(--accent);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sidebar-brand .brand-icon svg { width: 18px; height: 18px; fill: #fff; }
+.sidebar-brand .brand-text h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.sidebar-brand .brand-text span {
+  font-size: 0.79rem;
+  color: var(--text-tertiary);
+}
+.sidebar-nav {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+}
+.nav-section-label {
+  font-size: 0.71rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: 12px 10px 6px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.93rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+.nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.nav-item.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+.nav-item svg {
+  width: 20px; height: 20px;
+  flex-shrink: 0;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sidebar-footer {
+  padding: 12px;
+  border-top: 1px solid var(--border-primary);
+}
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+}
+.user-avatar {
+  width: 36px; height: 36px;
+  background: var(--brand-200);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.86rem;
+  flex-shrink: 0;
+}
+.user-info { flex: 1; min-width: 0; }
+.user-info .name { font-size: 0.86rem; font-weight: 600; color: var(--text-primary); }
+.user-info .role { font-size: 0.75rem; color: var(--text-tertiary); }
+.btn-logout {
+  background: none;
+  border: none;
+  padding: 6px;
+  color: var(--text-tertiary);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition);
+}
+.btn-logout:hover { background: var(--error-bg); color: var(--error); }
+.btn-logout svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+/* ── Main Content ──────────────────────────────────────────────────────── */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+.main-header {
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.main-header h1 {
+  font-size: 1.28rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.main-header p {
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.header-actions { display: flex; align-items: center; gap: 8px; }
+.theme-toggle {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 7px 10px;
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition);
+}
+.theme-toggle:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.theme-toggle svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMPONENTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Cards ─────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+}
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.card-body { padding: 20px; }
+
+/* ── Stat Cards ────────────────────────────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-xs);
+}
+.stat-card .stat-label {
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stat-card .stat-label .stat-icon {
+  width: 18px; height: 18px;
+  stroke: var(--accent);
+  fill: none;
+  stroke-width: 1.8;
+}
+.stat-card .stat-value {
+  font-size: 1.71rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.stat-card .stat-sub {
+  font-size: 0.79rem;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+/* ── Filter Bar ────────────────────────────────────────────────────────── */
+.filter-bar {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-xs);
+}
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+.filter-group { flex: 1; min-width: 160px; }
+.filter-group label {
+  display: block;
+  font-size: 0.79rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+.filter-group input,
+.filter-group select {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.86rem;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.filter-group input:focus,
+.filter-group select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+.filter-group select { cursor: pointer; }
+.filter-group select option { background: var(--bg-secondary); color: var(--text-primary); }
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 2px;
+}
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.checkbox-label input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 16px; height: 16px;
+  cursor: pointer;
+}
+.filter-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.btn-sm {
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.86rem;
+  font-weight: 500;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.btn-sm:hover { border-color: var(--border-hover); background: var(--bg-hover); }
+.btn-sm.primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.btn-sm.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+/* ── Table ─────────────────────────────────────────────────────────────── */
+.table-wrapper {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+}
+.table-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-primary);
+}
+.table-meta .meta-left {
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+}
+.table-meta .meta-left strong { color: var(--text-primary); font-weight: 600; }
+.table-scroll { overflow-x: auto; max-height: calc(100vh - 380px); overflow-y: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+table th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-tertiary);
+  border-bottom: 2px solid var(--border-primary);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  z-index: 5;
+}
+table th:hover { color: var(--text-primary); }
+table th .sort-icon { font-size: 0.71rem; margin-left: 4px; opacity: .5; }
+table th.sorted .sort-icon { opacity: 1; color: var(--accent); }
+table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  white-space: nowrap;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+table td.wrap { white-space: normal; max-width: 350px; }
+table tr:hover td { background: var(--bg-hover); }
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.badge-green { background: var(--success-bg); color: var(--success); }
+.badge-yellow { background: var(--warning-bg); color: var(--warning); }
+.badge-red { background: var(--error-bg); color: var(--error); }
+.badge-blue { background: var(--accent-subtle); color: var(--accent); }
+
+/* ── Pagination ────────────────────────────────────────────────────────── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-primary);
+}
+.pagination button {
+  padding: 6px 12px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  font-weight: 500;
+  transition: all var(--transition);
+}
+.pagination button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.pagination button.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.pagination button:disabled { opacity: .4; cursor: not-allowed; }
+.pagination .page-info {
+  padding: 6px 12px;
+  font-size: 0.86rem;
+  color: var(--text-tertiary);
+}
+
+/* ── Chart Container ──────────────────────────────────────────────────── */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-xs);
+}
+.chart-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+}
+.chart-card h3 .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.chart-container { position: relative; height: 320px; }
+.chart-container canvas { width: 100% !important; }
+
+/* ── Export Page ────────────────────────────────────────────────────────── */
+.export-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+.export-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  text-align: center;
+  box-shadow: var(--shadow-xs);
+  transition: all var(--transition);
+}
+.export-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+.export-card .export-icon {
+  width: 56px; height: 56px;
+  border-radius: var(--radius-lg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.export-card .export-icon.excel { background: rgba(23,178,106,.12); }
+.export-card .export-icon.csv { background: var(--accent-subtle); }
+.export-card .export-icon svg { width: 28px; height: 28px; }
+.export-card h3 { font-size: 1.07rem; font-weight: 600; margin-bottom: 6px; }
+.export-card p { font-size: 0.86rem; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5; }
+.export-card .btn-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 0.93rem;
+  font-weight: 600;
+  transition: all var(--transition);
+}
+.export-card .btn-export:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.export-card .btn-export svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+/* ── Toast ─────────────────────────────────────────────────────────────── */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  font-size: 0.86rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 300ms ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 280px;
+}
+.toast.success { background: #065F46; color: #D1FAE5; }
+.toast.error { background: #991B1B; color: #FEE2E2; }
+.toast.info { background: #1E3A5F; color: #DBEAFE; }
+.toast.fadeOut { animation: toastOut 300ms ease forwards; }
+@keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateX(40px); } }
+
+/* ── Loading ───────────────────────────────────────────────────────────── */
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  color: var(--text-tertiary);
+  gap: 10px;
+  font-size: 0.93rem;
+}
+.spinner {
+  width: 22px; height: 22px;
+  border: 2.5px solid var(--border-primary);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Page Sections ─────────────────────────────────────────────────────── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── Analytics top-list table ──────────────────────────────────────────── */
+.analytics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+.analytics-table th {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 2px solid var(--border-primary);
+  color: var(--text-tertiary);
+  font-weight: 600;
+  font-size: 0.79rem;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+.analytics-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-primary);
+  color: var(--text-primary);
+}
+.analytics-table tr:hover td { background: var(--bg-hover); }
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .charts-grid { grid-template-columns: 1fr; }
+  .filter-row { flex-direction: column; }
+  .page-content { padding: 16px; }
+}
+
+/* ── Empty State ───────────────────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-tertiary);
+}
+.empty-state svg { width: 48px; height: 48px; margin: 0 auto 12px; stroke: var(--text-placeholder); fill: none; stroke-width: 1.2; }
+.empty-state h3 { font-size: 1rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+.empty-state p { font-size: 0.86rem; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ TOAST CONTAINER ═══════════ -->
+<div class="toast-container" id="toasts"></div>
+
+<!-- ═══════════ LOGIN PAGE ═══════════ -->
+<div id="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2z" fill="#fff" stroke="none"/></svg>
+      </div>
+      <h1>ePallet Analyzer</h1>
+      <p>Sign in to access product data & analytics</p>
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <form id="login-form">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="login-user" placeholder="Enter username" autocomplete="username" autofocus>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-pass" placeholder="Enter password" autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-primary" id="login-btn">Sign in</button>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════ APP PAGE ═══════════ -->
+<div id="app-page">
+  <div class="app-layout">
+
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2z" fill="#fff" stroke="none"/></svg>
+          </div>
+          <div class="brand-text">
+            <h2>ePallet</h2>
+            <span>Data Analyzer</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <button class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </button>
+        <button class="nav-item" data-page="products" onclick="showPage('products')">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>
+          All Products
+        </button>
+
+        <div class="nav-section-label">Analytics</div>
+        <button class="nav-item" data-page="analytics-category" onclick="showPage('analytics-category')">
+          <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+          By Category
+        </button>
+        <button class="nav-item" data-page="analytics-manufacturer" onclick="showPage('analytics-manufacturer')">
+          <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+          By Manufacturer
+        </button>
+        <button class="nav-item" data-page="analytics-pricing" onclick="showPage('analytics-pricing')">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          Pricing Analysis
+        </button>
+        <button class="nav-item" data-page="analytics-correlation" onclick="showPage('analytics-correlation')">
+          <svg viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="2.5"/><circle cx="16.5" cy="8.5" r="2.5"/><circle cx="12" cy="18" r="1.5"/><circle cx="18" cy="14" r="1.5"/><circle cx="9" cy="9" r="1.5"/></svg>
+          Correlations
+        </button>
+
+        <div class="nav-section-label">Data</div>
+        <button class="nav-item" data-page="export" onclick="showPage('export')">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export Data
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="user-avatar" id="user-avatar">A</div>
+          <div class="user-info">
+            <div class="name" id="user-display-name">Admin</div>
+            <div class="role">Analyst</div>
+          </div>
+          <button class="btn-logout" onclick="doLogout()" title="Sign out">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── Main ── -->
+    <main class="main-content">
+      <div class="main-header">
+        <div>
+          <h1 id="page-title">Dashboard</h1>
+          <p id="page-subtitle">Overview of your ePallet product data</p>
+        </div>
+        <div class="header-actions">
+          <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+            <svg id="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            <svg id="theme-icon-sun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="page-content">
+
+        <!-- ═══════════ DASHBOARD ═══════════ -->
+        <div class="page active" id="page-dashboard">
+          <div class="stats-grid" id="stats-grid">
+            <div class="loading-spinner"><div class="spinner"></div>Loading stats...</div>
+          </div>
+          <div class="charts-grid" id="dashboard-charts">
+            <div class="chart-card">
+              <h3><span class="dot"></span>Products by Category</h3>
+              <div class="chart-container"><canvas id="chart-dash-categories"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3><span class="dot"></span>Price Distribution</h3>
+              <div class="chart-container"><canvas id="chart-dash-prices"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3><span class="dot"></span>Top 15 Manufacturers</h3>
+              <div class="chart-container"><canvas id="chart-dash-manufacturers"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3><span class="dot"></span>Avg Unit Price by Category</h3>
+              <div class="chart-container"><canvas id="chart-dash-avg-prices"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════ PRODUCTS ═══════════ -->
+        <div class="page" id="page-products">
+          <div class="filter-bar">
+            <div class="filter-row">
+              <div class="filter-group" style="flex:2;min-width:200px">
+                <label>Search</label>
+                <input type="text" id="f-search" placeholder="Search products, manufacturers, UPC...">
+              </div>
+              <div class="filter-group">
+                <label>Category</label>
+                <select id="f-category"><option value="">All Categories</option></select>
+              </div>
+              <div class="filter-group">
+                <label>Manufacturer</label>
+                <select id="f-manufacturer"><option value="">All Manufacturers</option></select>
+              </div>
+              <div class="filter-group" style="min-width:100px;flex:.5">
+                <label>Min Price</label>
+                <input type="number" id="f-min-price" placeholder="$0" step="0.01">
+              </div>
+              <div class="filter-group" style="min-width:100px;flex:.5">
+                <label>Max Price</label>
+                <input type="number" id="f-max-price" placeholder="$999" step="0.01">
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+              <div class="checkbox-row">
+                <label class="checkbox-label"><input type="checkbox" id="f-promo"> Promo Only</label>
+                <label class="checkbox-label"><input type="checkbox" id="f-mixed"> Mixed Pallet</label>
+                <label class="checkbox-label"><input type="checkbox" id="f-available"> Available Only</label>
+              </div>
+              <div class="filter-actions">
+                <button class="btn-sm" onclick="resetFilters()">Clear</button>
+                <button class="btn-sm primary" onclick="loadProducts()">Apply Filters</button>
+              </div>
+            </div>
+          </div>
+          <div id="products-table-area">
+            <div class="loading-spinner"><div class="spinner"></div>Loading products...</div>
+          </div>
+        </div>
+
+        <!-- ═══════════ ANALYTICS: BY CATEGORY ═══════════ -->
+        <div class="page" id="page-analytics-category">
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3><span class="dot"></span>Product Count by Category</h3>
+              <div class="chart-container"><canvas id="chart-cat-count"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3><span class="dot"></span>Avg Unit Price by Category</h3>
+              <div class="chart-container"><canvas id="chart-cat-avg"></canvas></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:20px">
+            <div class="card-header"><h3>Category Details</h3></div>
+            <div class="card-body" style="overflow-x:auto;padding:0">
+              <table class="analytics-table" id="cat-detail-table">
+                <thead>
+                  <tr><th>Category</th><th>Products</th><th>Avg Price</th><th>Min Price</th><th>Max Price</th><th>Median</th><th>Avg Delivered</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════ ANALYTICS: BY MANUFACTURER ═══════════ -->
+        <div class="page" id="page-analytics-manufacturer">
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3><span class="dot"></span>Top Manufacturers by Product Count</h3>
+              <div class="chart-container"><canvas id="chart-mfr-count"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3><span class="dot"></span>Avg Unit Price by Manufacturer</h3>
+              <div class="chart-container"><canvas id="chart-mfr-avg"></canvas></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:20px">
+            <div class="card-header"><h3>Manufacturer Details</h3></div>
+            <div class="card-body" style="overflow-x:auto;padding:0">
+              <table class="analytics-table" id="mfr-detail-table">
+                <thead>
+                  <tr><th>Manufacturer</th><th>Products</th><th>Categories</th><th>Avg Price</th><th>Min Price</th><th>Max Price</th><th>Avg Delivered</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════ ANALYTICS: PRICING ═══════════ -->
+        <div class="page" id="page-analytics-pricing">
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3><span class="dot"></span>Price Distribution (Unit Price)</h3>
+              <div class="chart-container"><canvas id="chart-price-dist"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3><span class="dot"></span>Top 20 Highest Priced Products</h3>
+              <div class="chart-container"><canvas id="chart-top-expensive"></canvas></div>
+            </div>
+          </div>
+          <div class="charts-grid" style="margin-top:0">
+            <div class="chart-card">
+              <h3><span class="dot"></span>Top 20 Cheapest Products</h3>
+              <div class="chart-container"><canvas id="chart-top-cheapest"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3><span class="dot"></span>Price Range by Category (Box Plot)</h3>
+              <div class="chart-container"><canvas id="chart-price-box"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════ ANALYTICS: CORRELATION ═══════════ -->
+        <div class="page" id="page-analytics-correlation">
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3><span class="dot"></span>Unit Price vs Total Weight</h3>
+              <div class="chart-container"><canvas id="chart-scatter"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3><span class="dot"></span>Lead Time Distribution</h3>
+              <div class="chart-container"><canvas id="chart-lead-time"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════ EXPORT ═══════════ -->
+        <div class="page" id="page-export">
+          <div class="export-grid">
+            <div class="export-card">
+              <div class="export-icon excel">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="#17B26A" stroke-width="1.8"/><polyline points="14 2 14 8 20 8" stroke="#17B26A" stroke-width="1.8" fill="none"/><path d="M9 15l2 2 4-4" stroke="#17B26A" stroke-width="1.8" fill="none"/></svg>
+              </div>
+              <h3>Excel Export</h3>
+              <p>Formatted spreadsheet with headers, styles, currency formatting, auto-filters, and a summary sheet.</p>
+              <button class="btn-export" onclick="exportData('excel')">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download .xlsx
+              </button>
+            </div>
+            <div class="export-card">
+              <div class="export-icon csv">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="var(--accent)" stroke-width="1.8"/><polyline points="14 2 14 8 20 8" stroke="var(--accent)" stroke-width="1.8" fill="none"/><line x1="8" y1="13" x2="16" y2="13" stroke="var(--accent)" stroke-width="1.8"/><line x1="8" y1="17" x2="13" y2="17" stroke="var(--accent)" stroke-width="1.8"/></svg>
+              </div>
+              <h3>CSV Export</h3>
+              <p>Raw comma-separated values file. Compatible with all spreadsheet applications and data tools.</p>
+              <button class="btn-export" onclick="exportData('csv')">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download .csv
+              </button>
+            </div>
+            <div class="export-card">
+              <div class="export-icon excel">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke="#17B26A" stroke-width="1.8"/><polyline points="22 4 12 14.01 9 11.01" stroke="#17B26A" stroke-width="1.8" fill="none"/></svg>
+              </div>
+              <h3>Filtered Export</h3>
+              <p>Export only the products matching your current filters. Set filters on the Products page first.</p>
+              <button class="btn-export" onclick="exportData('excel', true)">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download Filtered .xlsx
+              </button>
+            </div>
+          </div>
+          <div class="card" style="margin-top:24px">
+            <div class="card-header"><h3>Active Filters</h3></div>
+            <div class="card-body" id="export-filter-summary">
+              <p style="color:var(--text-tertiary)">No filters active — export will include all products.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════════════════ */
+const API = '';
+let currentPage = 'dashboard';
+let productPage = 1;
+let productSort = { by: 'product', dir: 'asc' };
+let charts = {};
+let filterOptions = { categories: [], manufacturers: [] };
+let summaryData = null;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME
+   ═══════════════════════════════════════════════════════════════════════════ */
+function initTheme() {
+  const saved = localStorage.getItem('epallet-theme') || 'dark';
+  setTheme(saved);
+}
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('epallet-theme', theme);
+  document.getElementById('theme-icon-moon').style.display = theme === 'dark' ? 'block' : 'none';
+  document.getElementById('theme-icon-sun').style.display = theme === 'light' ? 'block' : 'none';
+  // Re-render charts with new colors
+  Object.values(charts).forEach(c => { if (c) c.destroy(); });
+  charts = {};
+  if (document.getElementById('app-page').style.display !== 'none') {
+    renderCurrentPage();
+  }
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  setTheme(current === 'dark' ? 'light' : 'dark');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   API HELPERS
+   ═══════════════════════════════════════════════════════════════════════════ */
+async function api(url, opts = {}) {
+  opts.credentials = 'include';
+  if (opts.body && typeof opts.body === 'object') {
+    opts.headers = { 'Content-Type': 'application/json', ...opts.headers };
+    opts.body = JSON.stringify(opts.body);
+  }
+  const res = await fetch(API + url, opts);
+  if (res.status === 401) {
+    showLogin();
+    throw new Error('Unauthorized');
+  }
+  return res;
+}
+async function apiJson(url, opts) {
+  const res = await api(url, opts);
+  return res.json();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AUTH
+   ═══════════════════════════════════════════════════════════════════════════ */
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+
+  if (!user || !pass) { errEl.textContent = 'Please enter both fields'; errEl.style.display = 'block'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in...';
+  try {
+    const res = await fetch(API + '/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ username: user, password: pass })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      errEl.style.display = 'none';
+      toast('Welcome back, ' + data.username + '!', 'success');
+      showApp(data.username);
+    } else {
+      errEl.textContent = data.error || 'Invalid credentials';
+      errEl.style.display = 'block';
+    }
+  } catch (err) {
+    errEl.textContent = 'Connection error';
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Sign in';
+});
+
+async function doLogout() {
+  try { await api('/api/logout', { method: 'POST' }); } catch {}
+  showLogin();
+  toast('Signed out', 'info');
+}
+
+function showLogin() {
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('app-page').style.display = 'none';
+}
+function showApp(username) {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app-page').style.display = 'block';
+  const dn = username.charAt(0).toUpperCase() + username.slice(1);
+  document.getElementById('user-display-name').textContent = dn;
+  document.getElementById('user-avatar').textContent = dn.charAt(0);
+  loadInitialData();
+}
+
+async function checkSession() {
+  try {
+    const res = await fetch(API + '/api/me', { credentials: 'include' });
+    if (res.ok) {
+      const data = await res.json();
+      showApp(data.username);
+    } else {
+      showLogin();
+    }
+  } catch {
+    showLogin();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════════════════════════════════════ */
+const pageMeta = {
+  'dashboard':              { title: 'Dashboard',           subtitle: 'Overview of your ePallet product data' },
+  'products':               { title: 'All Products',        subtitle: 'Browse, filter, and sort the full catalog' },
+  'analytics-category':     { title: 'Category Analytics',  subtitle: 'Product distribution and pricing by category' },
+  'analytics-manufacturer': { title: 'Manufacturer Analytics', subtitle: 'Insights by manufacturer' },
+  'analytics-pricing':      { title: 'Pricing Analysis',    subtitle: 'Price distributions, extremes, and ranges' },
+  'analytics-correlation':  { title: 'Correlations',        subtitle: 'Relationships between price, weight, and lead time' },
+  'export':                 { title: 'Export Data',          subtitle: 'Download your data as Excel or CSV' },
+};
+
+function showPage(page) {
+  currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
+  const meta = pageMeta[page] || {};
+  document.getElementById('page-title').textContent = meta.title || '';
+  document.getElementById('page-subtitle').textContent = meta.subtitle || '';
+  renderCurrentPage();
+}
+
+function renderCurrentPage() {
+  switch (currentPage) {
+    case 'dashboard': loadDashboard(); break;
+    case 'products': loadProducts(); break;
+    case 'analytics-category': loadCategoryAnalytics(); break;
+    case 'analytics-manufacturer': loadManufacturerAnalytics(); break;
+    case 'analytics-pricing': loadPricingAnalytics(); break;
+    case 'analytics-correlation': loadCorrelationAnalytics(); break;
+    case 'export': updateExportSummary(); break;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHART HELPERS
+   ═══════════════════════════════════════════════════════════════════════════ */
+function chartColors(n) {
+  const palette = [
+    '#2E90FA','#17B26A','#F79009','#F04438','#7A5AF8',
+    '#EE46BC','#15B79E','#4E5BA6','#FF692E','#2ED3B7',
+    '#6172F3','#F63D68','#36BFFA','#D444F1','#66C61C',
+    '#FDB022','#875BF7','#F97066','#47CD89','#A4BCFD'
+  ];
+  const result = [];
+  for (let i = 0; i < n; i++) result.push(palette[i % palette.length]);
+  return result;
+}
+function getGridColor() {
+  return document.documentElement.getAttribute('data-theme') === 'dark'
+    ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)';
+}
+function getTickColor() {
+  return document.documentElement.getAttribute('data-theme') === 'dark'
+    ? '#94969C' : '#667085';
+}
+function getTooltipBg() {
+  return document.documentElement.getAttribute('data-theme') === 'dark'
+    ? '#1F242F' : '#101828';
+}
+function baseChartOpts(type = 'bar') {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: getTooltipBg(),
+        titleColor: '#fff',
+        bodyColor: '#D0D5DD',
+        padding: 10,
+        cornerRadius: 8,
+        bodyFont: { family: 'Inter' },
+        titleFont: { family: 'Inter', weight: '600' },
+      },
+    },
+    scales: type === 'doughnut' || type === 'pie' ? {} : {
+      x: {
+        grid: { color: getGridColor(), drawBorder: false },
+        ticks: { color: getTickColor(), font: { family: 'Inter', size: 11 } },
+      },
+      y: {
+        grid: { color: getGridColor(), drawBorder: false },
+        ticks: { color: getTickColor(), font: { family: 'Inter', size: 11 } },
+      },
+    },
+  };
+}
+function makeChart(id, config) {
+  if (charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id);
+  if (!ctx) return null;
+  charts[id] = new Chart(ctx, config);
+  return charts[id];
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INITIAL DATA
+   ═══════════════════════════════════════════════════════════════════════════ */
+async function loadInitialData() {
+  try {
+    const [filtersRes] = await Promise.all([apiJson('/api/filters')]);
+    filterOptions = filtersRes;
+    populateFilterDropdowns();
+  } catch {}
+  showPage('dashboard');
+}
+
+function populateFilterDropdowns() {
+  const catSel = document.getElementById('f-category');
+  const mfrSel = document.getElementById('f-manufacturer');
+  catSel.innerHTML = '<option value="">All Categories</option>';
+  mfrSel.innerHTML = '<option value="">All Manufacturers</option>';
+  filterOptions.categories.forEach(c => {
+    catSel.innerHTML += `<option value="${c}">${c}</option>`;
+  });
+  filterOptions.manufacturers.forEach(m => {
+    mfrSel.innerHTML += `<option value="${m}">${m}</option>`;
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FILTERS QUERY STRING
+   ═══════════════════════════════════════════════════════════════════════════ */
+function getFilterParams() {
+  const p = new URLSearchParams();
+  const s = document.getElementById('f-search')?.value?.trim();
+  if (s) p.set('search', s);
+  const c = document.getElementById('f-category')?.value;
+  if (c) p.set('category', c);
+  const m = document.getElementById('f-manufacturer')?.value;
+  if (m) p.set('manufacturer', m);
+  const mn = document.getElementById('f-min-price')?.value;
+  if (mn) p.set('min_price', mn);
+  const mx = document.getElementById('f-max-price')?.value;
+  if (mx) p.set('max_price', mx);
+  if (document.getElementById('f-promo')?.checked) p.set('promo_only', 'true');
+  if (document.getElementById('f-mixed')?.checked) p.set('mixed_pallet_only', 'true');
+  if (document.getElementById('f-available')?.checked) p.set('available_only', 'true');
+  return p;
+}
+
+function resetFilters() {
+  document.getElementById('f-search').value = '';
+  document.getElementById('f-category').value = '';
+  document.getElementById('f-manufacturer').value = '';
+  document.getElementById('f-min-price').value = '';
+  document.getElementById('f-max-price').value = '';
+  document.getElementById('f-promo').checked = false;
+  document.getElementById('f-mixed').checked = false;
+  document.getElementById('f-available').checked = false;
+  productPage = 1;
+  loadProducts();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DASHBOARD
+   ═══════════════════════════════════════════════════════════════════════════ */
+async function loadDashboard() {
+  try {
+    const [summary, catData, priceData, mfrData] = await Promise.all([
+      apiJson('/api/summary'),
+      apiJson('/api/analytics/by-category'),
+      apiJson('/api/analytics/price-distribution?bins=25'),
+      apiJson('/api/analytics/by-manufacturer?limit=15&sort=count'),
+    ]);
+    summaryData = summary;
+    renderStats(summary);
+    renderDashboardCharts(catData, priceData, mfrData);
+  } catch (err) {
+    console.error('Dashboard error:', err);
+  }
+}
+
+function renderStats(s) {
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">
+        <svg class="stat-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+        Total Products
+      </div>
+      <div class="stat-value">${s.total_products.toLocaleString()}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">
+        <svg class="stat-icon" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        Categories
+      </div>
+      <div class="stat-value">${s.total_categories}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">
+        <svg class="stat-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Manufacturers
+      </div>
+      <div class="stat-value">${s.total_manufacturers}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">
+        <svg class="stat-icon" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Avg Unit Price
+      </div>
+      <div class="stat-value">$${s.avg_unit_price.toFixed(2)}</div>
+      <div class="stat-sub">Range: $${s.min_unit_price.toFixed(2)} — $${s.max_unit_price.toFixed(2)}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">
+        <svg class="stat-icon" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        Promos Active
+      </div>
+      <div class="stat-value">${s.total_with_promo.toLocaleString()}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">
+        <svg class="stat-icon" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4a2 2 0 012 2v6a2 2 0 01-2 2H6"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        Avg Delivered Price
+      </div>
+      <div class="stat-value">$${s.avg_delivered_price.toFixed(2)}</div>
+    </div>
+  `;
+}
+
+function renderDashboardCharts(catData, priceData, mfrData) {
+  // Sort categories by count
+  const sorted = [...catData].sort((a, b) => b.count - a.count);
+  const top12 = sorted.slice(0, 12);
+
+  // Products by Category — Doughnut
+  makeChart('chart-dash-categories', {
+    type: 'doughnut',
+    data: {
+      labels: top12.map(d => d.category),
+      datasets: [{
+        data: top12.map(d => d.count),
+        backgroundColor: chartColors(12),
+        borderWidth: 0,
+        hoverOffset: 6,
+      }]
+    },
+    options: {
+      ...baseChartOpts('doughnut'),
+      cutout: '60%',
+      plugins: {
+        ...baseChartOpts('doughnut').plugins,
+        legend: {
+          display: true,
+          position: 'right',
+          labels: {
+            color: getTickColor(),
+            font: { family: 'Inter', size: 11 },
+            padding: 8,
+            usePointStyle: true,
+            pointStyleWidth: 8,
+          },
+        },
+      },
+    },
+  });
+
+  // Price Distribution — Bar
+  makeChart('chart-dash-prices', {
+    type: 'bar',
+    data: {
+      labels: priceData.map(d => d.label),
+      datasets: [{
+        data: priceData.map(d => d.count),
+        backgroundColor: '#2E90FA',
+        borderRadius: 3,
+        barPercentage: 0.9,
+      }]
+    },
+    options: {
+      ...baseChartOpts(),
+      scales: {
+        ...baseChartOpts().scales,
+        x: { ...baseChartOpts().scales.x, ticks: { ...baseChartOpts().scales.x.ticks, maxRotation: 45, maxTicksLimit: 12 } },
+      },
+    },
+  });
+
+  // Top Manufacturers — Horizontal Bar
+  const mfrSorted = [...mfrData].sort((a, b) => b.count - a.count);
+  makeChart('chart-dash-manufacturers', {
+    type: 'bar',
+    data: {
+      labels: mfrSorted.map(d => d.manufacturer),
+      datasets: [{
+        data: mfrSorted.map(d => d.count),
+        backgroundColor: chartColors(mfrSorted.length),
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      ...baseChartOpts(),
+      indexAxis: 'y',
+      scales: {
+        x: { ...baseChartOpts().scales.x },
+        y: { ...baseChartOpts().scales.y, ticks: { ...baseChartOpts().scales.y.ticks, font: { family: 'Inter', size: 10 } } },
+      },
+    },
+  });
+
+  // Avg Unit Price by Category — Bar
+  const catByPrice = [...catData].sort((a, b) => b.avg_unit_price - a.avg_unit_price).slice(0, 15);
+  makeChart('chart-dash-avg-prices', {
+    type: 'bar',
+    data: {
+      labels: catByPrice.map(d => d.category),
+      datasets: [{
+        data: catByPrice.map(d => d.avg_unit_price),
+        backgroundColor: '#17B26A',
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      ...baseChartOpts(),
+      scales: {
+        ...baseChartOpts().scales,
+        x: { ...baseChartOpts().scales.x, ticks: { ...baseChartOpts().scales.x.ticks, maxRotation: 45 } },
+        y: { ...baseChartOpts().scales.y, ticks: { ...baseChartOpts().scales.y.ticks, callback: v => '$' + v } },
+      },
+    },
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRODUCTS TABLE
+   ═══════════════════════════════════════════════════════════════════════════ */
+async function loadProducts() {
+  const area = document.getElementById('products-table-area');
+  area.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>Loading products...</div>';
+
+  const params = getFilterParams();
+  params.set('page', productPage);
+  params.set('per_page', 50);
+  params.set('sort_by', productSort.by);
+  params.set('sort_dir', productSort.dir);
+
+  try {
+    const data = await apiJson('/api/products?' + params.toString());
+    renderProductsTable(data);
+  } catch (err) {
+    area.innerHTML = '<div class="empty-state"><h3>Error loading products</h3></div>';
+  }
+}
+
+function renderProductsTable(data) {
+  const { products, total, page, per_page, total_pages } = data;
+  const area = document.getElementById('products-table-area');
+
+  if (!products.length) {
+    area.innerHTML = `
+      <div class="table-wrapper">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <h3>No products found</h3>
+          <p>Try adjusting your filters or search terms</p>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const cols = [
+    { key: 'product', label: 'Product', cls: 'wrap' },
+    { key: 'manufacturer', label: 'Manufacturer' },
+    { key: 'category', label: 'Category' },
+    { key: 'price_per_unit', label: 'Unit Price', fmt: 'currency' },
+    { key: 'delivered_price', label: 'Delivered', fmt: 'currency' },
+    { key: 'pack_size_raw', label: 'Pack Size' },
+    { key: 'cases_per_pallet', label: 'Cases/Pallet' },
+    { key: 'lead_time_days', label: 'Lead Time' },
+    { key: 'available', label: 'Available', fmt: 'badge' },
+    { key: 'has_promo', label: 'Promo', fmt: 'badge' },
+  ];
+
+  const from = (page - 1) * per_page + 1;
+  const to = Math.min(page * per_page, total);
+
+  let html = `<div class="table-wrapper">
+    <div class="table-meta">
+      <div class="meta-left">Showing <strong>${from}–${to}</strong> of <strong>${total.toLocaleString()}</strong> products</div>
+    </div>
+    <div class="table-scroll"><table><thead><tr>`;
+
+  cols.forEach(c => {
+    const sorted = productSort.by === c.key;
+    const icon = sorted ? (productSort.dir === 'asc' ? '▲' : '▼') : '⇅';
+    html += `<th class="${sorted ? 'sorted' : ''}" onclick="sortProducts('${c.key}')">
+      ${c.label}<span class="sort-icon">${icon}</span></th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  products.forEach(p => {
+    html += '<tr>';
+    cols.forEach(c => {
+      let val = p[c.key];
+      let cls = c.cls || '';
+      if (c.fmt === 'currency' && val !== '' && val != null) {
+        val = '$' + parseFloat(val).toFixed(2);
+      } else if (c.fmt === 'badge') {
+        if (val === 'Yes') val = '<span class="badge badge-green">Yes</span>';
+        else val = '<span class="badge badge-red">No</span>';
+      }
+      if (val === '' || val == null) val = '—';
+      html += `<td class="${cls}">${val}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+
+  // Pagination
+  html += '<div class="pagination">';
+  html += `<button ${page <= 1 ? 'disabled' : ''} onclick="goToPage(1)">«</button>`;
+  html += `<button ${page <= 1 ? 'disabled' : ''} onclick="goToPage(${page - 1})">‹</button>`;
+
+  const maxBtns = 7;
+  let startP = Math.max(1, page - Math.floor(maxBtns / 2));
+  let endP = Math.min(total_pages, startP + maxBtns - 1);
+  if (endP - startP < maxBtns - 1) startP = Math.max(1, endP - maxBtns + 1);
+
+  for (let i = startP; i <= endP; i++) {
+    html += `<button class="${i === page ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+  }
+
+  html += `<span class="page-info">${page} / ${total_pages}</span>`;
+  html += `<button ${page >= total_pages ? 'disabled' : ''} onclick="goToPage(${page + 1})">›</button>`;
+  html += `<button ${page >= total_pages ? 'disabled' : ''} onclick="goToPage(${total_pages})">»</button>`;
+  html += '</div></div>';
+
+  area.innerHTML = html;
+}
+
+function sortProducts(col) {
+  if (productSort.by === col) {
+    productSort.dir = productSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    productSort.by = col;
+    productSort.dir = 'asc';
+  }
+  productPage = 1;
+  loadProducts();
+}
+function goToPage(p) {
+  productPage = p;
+  loadProducts();
+}
+
+// Search on Enter
+document.getElementById('f-search')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { productPage = 1; loadProducts(); }
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANALYTICS: CATEGORY
+   ═══════════════════════════════════════════════════════════════════════════ */
+async function loadCategoryAnalytics() {
+  try {
+    const data = await apiJson('/api/analytics/by-category');
+    const sorted = [...data].sort((a, b) => b.count - a.count);
+
+    makeChart('chart-cat-count', {
+      type: 'bar',
+      data: {
+        labels: sorted.map(d => d.category),
+        datasets: [{
+          data: sorted.map(d => d.count),
+          backgroundColor: chartColors(sorted.length),
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        ...baseChartOpts(),
+        scales: {
+          ...baseChartOpts().scales,
+          x: { ...baseChartOpts().scales.x, ticks: { ...baseChartOpts().scales.x.ticks, maxRotation: 60, font: { size: 9, family: 'Inter' } } },
+        },
+      },
+    });
+
+    const byPrice = [...data].sort((a, b) => b.avg_unit_price - a.avg_unit_price);
+    makeChart('chart-cat-avg', {
+      type: 'bar',
+      data: {
+        labels: byPrice.map(d => d.category),
+        datasets: [{
+          label: 'Avg Unit Price',
+          data: byPrice.map(d => d.avg_unit_price),
+          backgroundColor: '#17B26A',
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        ...baseChartOpts(),
+        scales: {
+          ...baseChartOpts().scales,
+          x: { ...baseChartOpts().scales.x, ticks: { ...baseChartOpts().scales.x.ticks, maxRotation: 60, font: { size: 9, family: 'Inter' } } },
+          y: { ...baseChartOpts().scales.y, ticks: { ...baseChartOpts().scales.y.ticks, callback: v => '$' + v } },
+        },
+      },
+    });
+
+    // Detail table
+    const tbody = document.querySelector('#cat-detail-table tbody');
+    tbody.innerHTML = sorted.map(d => `
+      <tr>
+        <td>${d.category}</td>
+        <td>${d.count}</td>
+        <td>$${d.avg_unit_price.toFixed(2)}</td>
+        <td>$${d.min_unit_price.toFixed(2)}</td>
+        <td>$${d.max_unit_price.toFixed(2)}</td>
+        <td>$${d.median_unit_price.toFixed(2)}</td>
+        <td>$${(d.avg_delivered || 0).toFixed(2)}</td>
+      </tr>
+    `).join('');
+  } catch (err) { console.error(err); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANALYTICS: MANUFACTURER
+   ═══════════════════════════════════════════════════════════════════════════ */
+async function loadManufacturerAnalytics() {
+  try {
+    const data = await apiJson('/api/analytics/by-manufacturer?limit=30&sort=count');
+    const sorted = [...data].sort((a, b) => b.count - a.count);
+
+    makeChart('chart-mfr-count', {
+      type: 'bar',
+      data: {
+        labels: sorted.map(d => d.manufacturer),
+        datasets: [{
+          data: sorted.map(d => d.count),
+          backgroundColor: chartColors(sorted.length),
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        ...baseChartOpts(),
+        indexAxis: 'y',
+        scales: {
+          x: { ...baseChartOpts().scales.x },
+          y: { ...baseChartOpts().scales.y, ticks: { ...baseChartOpts().scales.y.ticks, font: { family: 'Inter', size: 10 } } },
+        },
+      },
+    });
+
+    const byPrice = [...data].sort((a, b) => b.avg_unit_price - a.avg_unit_price).slice(0, 20);
+    makeChart('chart-mfr-avg', {
+      type: 'bar',
+      data: {
+        labels: byPrice.map(d => d.manufacturer),
+        datasets: [{
+          data: byPrice.map(d => d.avg_unit_price),
+          backgroundColor: '#F79009',
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        ...baseChartOpts(),
+        indexAxis: 'y',
+        scales: {
+          x: { ...baseChartOpts().scales.x, ticks: { ...baseChartOpts().scales.x.ticks, callback: v => '$' + v } },
+          y: { ...baseChartOpts().scales.y, ticks: { ...baseChartOpts().scales.y.ticks, font: { family: 'Inter', size: 10 } } },
+        },
+      },
+    });
+
+    // Detail table
+    const tbody = document.querySelector('#mfr-detail-table tbody');
+    tbody.innerHTML = sorted.map(d => `
+      <tr>
+        <td>${d.manufacturer}</td>
+        <td>${d.count}</td>
+        <td>${d.categories}</td>
+        <td>$${d.avg_unit_price.toFixed(2)}</td>
+        <td>$${d.min_unit_price.toFixed(2)}</td>
+        <td>$${d.max_unit_price.toFixed(2)}</td>
+        <td>$${(d.avg_delivered || 0).toFixed(2)}</td>
+      </tr>
+    `).join('');
+  } catch (err) { console.error(err); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANALYTICS: PRICING
+   ═══════════════════════════════════════════════════════════════════════════ */
+async function loadPricingAnalytics() {
+  try {
+    const [distData, topExp, topCheap, catData] = await Promise.all([
+      apiJson('/api/analytics/price-distribution?bins=30'),
+      apiJson('/api/analytics/top-value?metric=price_per_unit&direction=desc&limit=20'),
+      apiJson('/api/analytics/top-value?metric=price_per_unit&direction=asc&limit=20'),
+      apiJson('/api/analytics/by-category'),
+    ]);
+
+    // Price distribution
+    makeChart('chart-price-dist', {
+      type: 'bar',
+      data: {
+        labels: distData.map(d => d.label),
+        datasets: [{
+          data: distData.map(d => d.count),
+          backgroundColor: 'rgba(46,144,250,.7)',
+          borderColor: '#2E90FA',
+          borderWidth: 1,
+          borderRadius: 2,
+          barPercentage: 0.95,
+        }]
+      },
+      options: {
+        ...baseChartOpts(),
+        scales: {
+          ...baseChartOpts().scales,
+          x: { ...baseChartOpts().scales.x, ticks: { ...baseChartOpts().scales.x.ticks, maxRotation: 45, maxTicksLimit: 10 } },
+        },
+      },
+    });
+
+    // Top expensive
+    makeChart('chart-top-expensive', {
+      type: 'bar',
+      data: {
+        labels: topExp.map(d => d.product.substring(0, 30) + (d.product.length > 30 ? '…' : '')),
+        datasets: [{
+          data: topExp.map(d => d.price_per_unit),
+          backgroundColor: '#F04438',
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        ...baseChartOpts(),
+        indexAxis: 'y',
+        scales: {
+          x: { ...baseChartOpts().scales.x, ticks: { ...baseChartOpts().scales.x.ticks, callback: v => '$' + v } },
+          y: { ...baseChartOpts().scales.y, ticks: { ...baseChartOpts().scales.y.ticks, font: { size: 9, family: 'Inter' } } },
+        },
+      },
+    });
+
+    // Top cheapest
+    makeChart('chart-top-cheapest', {
+      type: 'bar',
+      data: {
+        labels: topCheap.map(d => d.product.substring(0, 30) + (d.product.length > 30 ? '…' : '')),
+        datasets: [{
+          data: topCheap.map(d => d.price_per_unit),
+          backgroundColor: '#17B26A',
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        ...baseChartOpts(),
+        indexAxis: 'y',
+        scales: {
+          x: { ...baseChartOpts().scales.x, ticks: { ...baseChartOpts().scales.x.ticks, callback: v => '$' + v.toFixed(2) } },
+          y: { ...baseChartOpts().scales.y, ticks: { ...baseChartOpts().scales.y.ticks, font: { size: 9, family: 'Inter' } } },
+        },
+      },
+    });
+
+    // Price range by category (min/max bars)
+    const catSorted = [...catData].sort((a, b) => b.avg_unit_price - a.avg_unit_price).slice(0, 15);
+    makeChart('chart-price-box', {
+      type: 'bar',
+      data: {
+        labels: catSorted.map(d => d.category),
+        datasets: [
+          {
+            label: 'Min',
+            data: catSorted.map(d => d.min_unit_price),
+            backgroundColor: 'rgba(23,178,106,.5)',
+            borderRadius: 3,
+          },
+          {
+            label: 'Avg',
+            data: catSorted.map(d => d.avg_unit_price),
+            backgroundColor: 'rgba(46,144,250,.7)',
+            borderRadius: 3,
+          },
+          {
+            label: 'Max',
+            data: catSorted.map(d => d.max_unit_price),
+            backgroundColor: 'rgba(240,68,56,.5)',
+            borderRadius: 3,
+          },
+        ]
+      },
+      options: {
+        ...baseChartOpts(),
+        plugins: {
+          ...baseChartOpts().plugins,
+          legend: {
+            display: true,
+            labels: { color: getTickColor(), font: { family: 'Inter', size: 11 }, usePointStyle: true, pointStyleWidth: 8 },
+          },
+        },
+        scales: {
+          ...baseChartOpts().scales,
+          x: { ...baseChartOpts().scales.x, ticks: { ...baseChartOpts().scales.x.ticks, maxRotation: 45, font: { size: 9, family: 'Inter' } } },
+          y: { ...baseChartOpts().scales.y, ticks: { ...baseChartOpts().scales.y.ticks, callback: v => '$' + v } },
+        },
+      },
+    });
+  } catch (err) { console.error(err); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANALYTICS: CORRELATION
+   ═══════════════════════════════════════════════════════════════════════════ */
+async function loadCorrelationAnalytics() {
+  try {
+    const [scatterData, leadData] = await Promise.all([
+      apiJson('/api/analytics/price-vs-volume'),
+      apiJson('/api/analytics/lead-time'),
+    ]);
+
+    // Scatter: Unit Price vs Total Weight
+    const categories = [...new Set(scatterData.map(d => d.category))];
+    const colors = chartColors(categories.length);
+    const datasets = categories.slice(0, 10).map((cat, i) => ({
+      label: cat,
+      data: scatterData.filter(d => d.category === cat).map(d => ({ x: d.total_weight, y: d.price_per_unit })),
+      backgroundColor: colors[i] + '99',
+      pointRadius: 3,
+      pointHoverRadius: 5,
+    }));
+
+    makeChart('chart-scatter', {
+      type: 'scatter',
+      data: { datasets },
+      options: {
+        ...baseChartOpts(),
+        plugins: {
+          ...baseChartOpts().plugins,
+          legend: {
+            display: true,
+            position: 'top',
+            labels: { color: getTickColor(), font: { family: 'Inter', size: 10 }, usePointStyle: true, pointStyleWidth: 6, padding: 8 },
+          },
+          tooltip: {
+            ...baseChartOpts().plugins.tooltip,
+            callbacks: {
+              label: ctx => `${ctx.dataset.label}: $${ctx.parsed.y.toFixed(2)} @ ${ctx.parsed.x} oz/g`,
+            },
+          },
+        },
+        scales: {
+          x: { ...baseChartOpts().scales.x, title: { display: true, text: 'Total Weight (oz/g)', color: getTickColor(), font: { family: 'Inter', size: 11 } } },
+          y: { ...baseChartOpts().scales.y, title: { display: true, text: 'Unit Price ($)', color: getTickColor(), font: { family: 'Inter', size: 11 } }, ticks: { ...baseChartOpts().scales.y.ticks, callback: v => '$' + v } },
+        },
+      },
+    });
+
+    // Lead time distribution
+    const ltAgg = {};
+    leadData.forEach(d => {
+      ltAgg[d.lead_time_days] = (ltAgg[d.lead_time_days] || 0) + d.count;
+    });
+    const ltSorted = Object.entries(ltAgg).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+
+    makeChart('chart-lead-time', {
+      type: 'bar',
+      data: {
+        labels: ltSorted.map(d => d[0] + ' days'),
+        datasets: [{
+          data: ltSorted.map(d => d[1]),
+          backgroundColor: '#7A5AF8',
+          borderRadius: 4,
+        }]
+      },
+      options: baseChartOpts(),
+    });
+  } catch (err) { console.error(err); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EXPORT
+   ═══════════════════════════════════════════════════════════════════════════ */
+function updateExportSummary() {
+  const el = document.getElementById('export-filter-summary');
+  const params = getFilterParams();
+  const entries = [...params.entries()];
+  if (!entries.length) {
+    el.innerHTML = '<p style="color:var(--text-tertiary)">No filters active — export will include all <strong>' + (summaryData?.total_products || '~12,000') + '</strong> products.</p>';
+  } else {
+    let html = '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
+    entries.forEach(([k, v]) => {
+      html += `<span class="badge badge-blue" style="padding:4px 12px;font-size:.86rem">${k}: ${v}</span>`;
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+}
+
+function exportData(format, useFilters = false) {
+  const params = useFilters ? getFilterParams() : new URLSearchParams();
+  const url = API + '/api/export/' + format + '?' + params.toString();
+  toast('Preparing download...', 'info');
+  // Open in hidden iframe or just redirect
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => toast('Download started!', 'success'), 800);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOAST
+   ═══════════════════════════════════════════════════════════════════════════ */
+function toast(msg, type = 'info') {
+  const container = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  const icons = {
+    success: '✓',
+    error: '✕',
+    info: 'ℹ',
+  };
+  el.innerHTML = `<span>${icons[type] || 'ℹ'}</span> ${msg}`;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('fadeOut');
+    setTimeout(() => el.remove(), 300);
+  }, 3000);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════════════════════════════ */
+initTheme();
+checkSession();
+</script>
+</body>
+</html>

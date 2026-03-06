@@ -1,0 +1,162 @@
+{
+  "shop_by_business": [
+    {
+      "name": "Food Service",
+      "child": [
+        "Canned Goods",
+        "Meat & Seafood",
+        "Meal Kits",
+        "Pantry & Baking Supplies",
+        "Snacks",
+        "Fruits & Vegetables",
+        "Natural Foods & Plant-Based",
+        "Frozen",
+        "Eggs & Dairy",
+        "Beverages & Beverage Mixes",
+        "Condiments, Dressings, Spreads",
+        "Ingredients",
+        "Spices, Seasonings, Sweeteners",
+        "Prepared & Ethnic Foods",
+        "Bakery, Tortillas",
+        "Grains & Cereals",
+        "Legumes, Nuts & Seeds",
+        "Industrial Ingredients",
+        "Baked Goods & Desserts"
+      ]
+    },
+    {
+      "name": "K12 / Schools",
+      "child": [
+        "Brands",
+        "Meal Kits",
+        "Meat & Seafood",
+        "Canned Goods",
+        "Snacks",
+        "Frozen",
+        "Pantry & Baking Supplies",
+        "Beverages & Beverage Mixes",
+        "Condiments, Dressings, Spreads",
+        "Ingredients",
+        "Paper & Serviceware",
+        "Bakery, Tortillas",
+        "Eggs & Dairy",
+        "Grains & Cereals",
+        "Legumes, Nuts & Seeds",
+        "Prepared & Ethnic Foods",
+        "Fruits & Vegetables",
+        "Spices, Seasonings, Sweeteners",
+        "Natural Foods & Plant-Based",
+        "Baked Goods & Desserts"
+      ]
+    },
+    {
+      "name": "Non-Profit / Emergency Relief",
+      "child": [
+        "Disposable Serviceware",
+        "Canned Goods",
+        "Meal Kits",
+        "Snacks",
+        "Beverages & Beverage Mixes",
+        "Meat & Seafood",
+        "Ready to Eat Meals",
+        "Cleaning Supplies & Paper",
+        "Pantry & Baking Supplies",
+        "Condiments, Dressings, Spreads",
+        "Grains & Cereals",
+        "Household",
+        "Janitorial Supplies",
+        "Legumes, Nuts & Seeds",
+        "Prepared & Ethnic Foods",
+        "Spices, Seasonings, Sweeteners",
+        "Natural Foods & Plant-Based",
+        "Pet Food",
+        "Fruits & Vegetables",
+        "Baked Goods & Desserts"
+      ]
+    },
+    {
+      "name": "Non-Food / Paper",
+      "child": [
+        "Disposable Serviceware",
+        "Household",
+        "Health & Beauty",
+        "Medical Supplies",
+        "Baby Products",
+        "Pet Products",
+        "Hand Sanitizers, Disinfectants & Wipes",
+        "Janitorial Supplies",
+        "PPE"
+      ]
+    },
+    {
+      "name": "Retail",
+      "child": [
+        "Canned Goods",
+        "Pantry & Baking Supplies",
+        "Natural Foods & Plant-Based",
+        "Meat & Seafood",
+        "Fruits & Vegetables",
+        "Frozen",
+        "Eggs & Dairy",
+        "Snacks",
+        "Beverages & Beverage Mixes",
+        "Condiments, Dressings, Spreads",
+        "Ingredients",
+        "Spices, Seasonings, Sweeteners",
+        "Baby Food",
+        "Bakery, Tortillas",
+        "Grains & Cereals",
+        "Prepared & Ethnic Foods",
+        "Legumes, Nuts & Seeds",
+        "Pet Food",
+        "Baked Goods & Desserts"
+      ]
+    },
+    {
+      "name": "Industrial",
+      "child": [
+        "Pantry & Baking Supplies",
+        "Condiments, Dressings & Spreads",
+        "Ingredients",
+        "Spices, Seasonings, Sweeteners"
+      ]
+    }
+  ],
+  "shop_by_category": [
+    {
+      "name": "Food",
+      "child": [
+        "Pantry & Baking Supplies",
+        "Canned Goods",
+        "Ingredients",
+        "Meal Kits",
+        "Condiments, Dressings, Spreads",
+        "Baby Food",
+        "Meat & Seafood",
+        "Natural Foods & Plant-Based",
+        "Fruits & Vegetables",
+        "Frozen",
+        "Eggs & Dairy",
+        "Snacks",
+        "Ready to Eat Meals",
+        "Industrial Ingredients",
+        "Beverages & Beverage Mixes",
+        "Prepared & Ethnic Foods",
+        "Baked Goods & Desserts",
+        "Spices, Seasonings, Sweeteners"
+      ]
+    },
+    {
+      "name": "Non-Food",
+      "child": [
+        "Hand Sanitizers, Disinfectants & Wipes",
+        "Disposable Serviceware",
+        "Household",
+        "Pet Products",
+        "Medical Supplies",
+        "Health & Beauty",
+        "Baby Products"
+      ]
+    }
+  ]
+}
