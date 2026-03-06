@@ -18,6 +18,8 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, numbers
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 app.secret_key = "epallet-scraper4000-secret-key-change-in-prod"
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = False  # Set True if HTTPS only
 CORS(app, supports_credentials=True)
 
 # ── Config ──────────────────────────────────────────────────────────────────

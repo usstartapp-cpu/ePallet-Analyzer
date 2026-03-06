@@ -3432,14 +3432,37 @@ function exportData(format, useFilters = false) {
   const params = useFilters ? getFilterParams() : new URLSearchParams();
   const url = API + '/api/export/' + format + '?' + params.toString();
   toast('Preparing download...', 'info');
-  // Open in hidden iframe or just redirect
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = '';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => toast('Download started!', 'success'), 800);
+
+  fetch(url, { credentials: 'include' })
+    .then(res => {
+      if (!res.ok) {
+        if (res.status === 401) { showLogin(); throw new Error('Unauthorized'); }
+        throw new Error('Download failed: ' + res.status);
+      }
+      // Extract filename from Content-Disposition header if present
+      const cd = res.headers.get('Content-Disposition');
+      let filename = format === 'excel' ? 'epallet_products.xlsx' : 'epallet_products.csv';
+      if (cd) {
+        const match = cd.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (match && match[1]) filename = match[1].replace(/['"]/g, '');
+      }
+      return res.blob().then(blob => ({ blob, filename }));
+    })
+    .then(({ blob, filename }) => {
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+      toast('Download started!', 'success');
+    })
+    .catch(err => {
+      console.error('Export error:', err);
+      toast('Download failed — please try again', 'error');
+    });
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
