@@ -21,16 +21,29 @@ app.secret_key = "epallet-scraper4000-secret-key-change-in-prod"
 CORS(app, supports_credentials=True)
 
 # ── Config ──────────────────────────────────────────────────────────────────
-CSV_PATH = os.path.join(os.path.dirname(__file__), "..", "epallet_dry_products.csv")
-UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "uploads")
-UPLOAD_LOG = os.path.join(os.path.dirname(__file__), "..", "upload_history.json")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_DIR = os.path.join(BASE_DIR, "..")
+CSV_PATH = os.path.join(PROJECT_DIR, "epallet_dry_products.csv")
+
+# Vercel has a read-only filesystem; use /tmp for writable paths
+IS_VERCEL = os.environ.get("VERCEL", "") == "1" or os.path.exists("/vercel")
+if IS_VERCEL:
+    UPLOAD_DIR = "/tmp/uploads"
+    UPLOAD_LOG = "/tmp/upload_history.json"
+else:
+    UPLOAD_DIR = os.path.join(PROJECT_DIR, "uploads")
+    UPLOAD_LOG = os.path.join(PROJECT_DIR, "upload_history.json")
+
 USERS = {
     "admin": "epallet2026",
     "michael": "LAFoods2026",
 }
 
 # Ensure upload directory exists
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+try:
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+except OSError:
+    pass
 
 # ── Load data once at startup ──────────────────────────────────────────────
 def load_data():
@@ -80,9 +93,18 @@ def load_data():
     
     return df
 
-print("Loading data...")
-DF = load_data()
-print(f"Loaded {len(DF)} products across {DF['category'].nunique()} categories from {DF['manufacturer'].nunique()} manufacturers")
+# ── Load data with error handling for serverless ───────────────────────────
+DF = None
+try:
+    print(f"Loading data from: {CSV_PATH}")
+    print(f"CSV exists: {os.path.exists(CSV_PATH)}")
+    DF = load_data()
+    print(f"Loaded {len(DF)} products across {DF['category'].nunique()} categories from {DF['manufacturer'].nunique()} manufacturers")
+except Exception as e:
+    print(f"ERROR loading data: {e}")
+    import traceback
+    traceback.print_exc()
+    DF = pd.DataFrame()
 
 # ── Upload history helper ──────────────────────────────────────────────────
 def load_upload_history():
