@@ -543,6 +543,100 @@ input, select, textarea { font-family: var(--font); }
 }
 .btn-sm.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
 
+/* ── Analytics Filter Toolbar ──────────────────────────────────────────── */
+.analytics-filter-bar {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow-xs);
+}
+.analytics-filter-bar .af-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+}
+.analytics-filter-bar .af-group {
+  flex: 1;
+  min-width: 140px;
+}
+.analytics-filter-bar .af-group.af-search {
+  flex: 2;
+  min-width: 180px;
+}
+.analytics-filter-bar .af-group label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.analytics-filter-bar .af-group select,
+.analytics-filter-bar .af-group input {
+  width: 100%;
+  padding: 7px 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-family: var(--font);
+  outline: none;
+  transition: border-color var(--transition);
+}
+.analytics-filter-bar .af-group select:focus,
+.analytics-filter-bar .af-group input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+.analytics-filter-bar .af-group select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+.analytics-filter-bar .af-actions {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+  padding-bottom: 1px;
+}
+.analytics-filter-bar .af-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.af-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: var(--accent-subtle);
+  border: 1px solid var(--accent);
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--accent);
+}
+.af-chip .af-chip-x {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.85rem;
+  line-height: 1;
+  opacity: .7;
+  transition: opacity .15s;
+}
+.af-chip .af-chip-x:hover { opacity: 1; }
+.af-active-count {
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-weight: 600;
+  margin-left: 4px;
+}
+
 /* ── Table ─────────────────────────────────────────────────────────────── */
 .table-wrapper {
   background: var(--bg-card);
@@ -1232,6 +1326,31 @@ table tr:hover td { background: var(--bg-hover); }
 
         <!-- ═══════════ ANALYTICS: BY CATEGORY ═══════════ -->
         <div class="page" id="page-analytics-category">
+          <div class="analytics-filter-bar">
+            <div class="af-row">
+              <div class="af-group af-search">
+                <label>Search Products</label>
+                <input type="text" id="af-cat-search" placeholder="Search by name, UPC…">
+              </div>
+              <div class="af-group">
+                <label>Manufacturer</label>
+                <select id="af-cat-manufacturer"><option value="">All Manufacturers</option></select>
+              </div>
+              <div class="af-group" style="min-width:100px;flex:.6">
+                <label>Min Price</label>
+                <input type="number" id="af-cat-min-price" placeholder="$0" step="0.01">
+              </div>
+              <div class="af-group" style="min-width:100px;flex:.6">
+                <label>Max Price</label>
+                <input type="number" id="af-cat-max-price" placeholder="$999" step="0.01">
+              </div>
+              <div class="af-actions">
+                <button class="btn-sm" onclick="clearAnalyticsFilter('cat')">Clear</button>
+                <button class="btn-sm primary" onclick="loadCategoryAnalytics()">Apply</button>
+              </div>
+            </div>
+            <div class="af-chip-row" id="af-cat-chips"></div>
+          </div>
           <div class="charts-grid">
             <div class="chart-card">
               <h3><span class="dot"></span>Product Count by Category</h3>
@@ -1242,8 +1361,9 @@ table tr:hover td { background: var(--bg-hover); }
               <div class="chart-container"><canvas id="chart-cat-avg"></canvas></div>
             </div>
           </div>
+          <div class="stats-grid" id="cat-summary-stats" style="margin-top:16px"></div>
           <div class="card" style="margin-top:20px">
-            <div class="card-header"><h3>Category Details</h3></div>
+            <div class="card-header"><h3>Category Details</h3><span id="cat-result-count" style="font-size:.82rem;color:var(--text-tertiary)"></span></div>
             <div class="card-body" style="overflow-x:auto;padding:0">
               <table class="analytics-table" id="cat-detail-table">
                 <thead>
@@ -1257,6 +1377,54 @@ table tr:hover td { background: var(--bg-hover); }
 
         <!-- ═══════════ ANALYTICS: BY MANUFACTURER ═══════════ -->
         <div class="page" id="page-analytics-manufacturer">
+          <div class="analytics-filter-bar">
+            <div class="af-row">
+              <div class="af-group af-search">
+                <label>Search Products</label>
+                <input type="text" id="af-mfr-search" placeholder="Search by name, UPC…">
+              </div>
+              <div class="af-group">
+                <label>Category</label>
+                <select id="af-mfr-category"><option value="">All Categories</option></select>
+              </div>
+              <div class="af-group">
+                <label>Manufacturer</label>
+                <select id="af-mfr-manufacturer"><option value="">All Manufacturers</option></select>
+              </div>
+              <div class="af-group" style="min-width:100px;flex:.6">
+                <label>Min Price</label>
+                <input type="number" id="af-mfr-min-price" placeholder="$0" step="0.01">
+              </div>
+              <div class="af-group" style="min-width:100px;flex:.6">
+                <label>Max Price</label>
+                <input type="number" id="af-mfr-max-price" placeholder="$999" step="0.01">
+              </div>
+              <div class="af-group" style="min-width:100px;flex:.5">
+                <label>Limit</label>
+                <select id="af-mfr-limit">
+                  <option value="10">Top 10</option>
+                  <option value="20">Top 20</option>
+                  <option value="30" selected>Top 30</option>
+                  <option value="50">Top 50</option>
+                  <option value="100">All</option>
+                </select>
+              </div>
+              <div class="af-group" style="min-width:110px;flex:.5">
+                <label>Sort By</label>
+                <select id="af-mfr-sort">
+                  <option value="count" selected>Product Count</option>
+                  <option value="avg_unit_price">Avg Price</option>
+                  <option value="avg_delivered">Avg Delivered</option>
+                  <option value="categories">Categories</option>
+                </select>
+              </div>
+              <div class="af-actions">
+                <button class="btn-sm" onclick="clearAnalyticsFilter('mfr')">Clear</button>
+                <button class="btn-sm primary" onclick="loadManufacturerAnalytics()">Apply</button>
+              </div>
+            </div>
+            <div class="af-chip-row" id="af-mfr-chips"></div>
+          </div>
           <div class="charts-grid">
             <div class="chart-card">
               <h3><span class="dot"></span>Top Manufacturers by Product Count</h3>
@@ -1267,8 +1435,9 @@ table tr:hover td { background: var(--bg-hover); }
               <div class="chart-container"><canvas id="chart-mfr-avg"></canvas></div>
             </div>
           </div>
+          <div class="stats-grid" id="mfr-summary-stats" style="margin-top:16px"></div>
           <div class="card" style="margin-top:20px">
-            <div class="card-header"><h3>Manufacturer Details</h3></div>
+            <div class="card-header"><h3>Manufacturer Details</h3><span id="mfr-result-count" style="font-size:.82rem;color:var(--text-tertiary)"></span></div>
             <div class="card-body" style="overflow-x:auto;padding:0">
               <table class="analytics-table" id="mfr-detail-table">
                 <thead>
@@ -1282,6 +1451,35 @@ table tr:hover td { background: var(--bg-hover); }
 
         <!-- ═══════════ ANALYTICS: PRICING ═══════════ -->
         <div class="page" id="page-analytics-pricing">
+          <div class="analytics-filter-bar">
+            <div class="af-row">
+              <div class="af-group af-search">
+                <label>Search Products</label>
+                <input type="text" id="af-price-search" placeholder="Search by name, UPC…">
+              </div>
+              <div class="af-group">
+                <label>Category</label>
+                <select id="af-price-category"><option value="">All Categories</option></select>
+              </div>
+              <div class="af-group">
+                <label>Manufacturer</label>
+                <select id="af-price-manufacturer"><option value="">All Manufacturers</option></select>
+              </div>
+              <div class="af-group" style="min-width:100px;flex:.6">
+                <label>Min Price</label>
+                <input type="number" id="af-price-min-price" placeholder="$0" step="0.01">
+              </div>
+              <div class="af-group" style="min-width:100px;flex:.6">
+                <label>Max Price</label>
+                <input type="number" id="af-price-max-price" placeholder="$999" step="0.01">
+              </div>
+              <div class="af-actions">
+                <button class="btn-sm" onclick="clearAnalyticsFilter('price')">Clear</button>
+                <button class="btn-sm primary" onclick="loadPricingAnalytics()">Apply</button>
+              </div>
+            </div>
+            <div class="af-chip-row" id="af-price-chips"></div>
+          </div>
           <div class="charts-grid">
             <div class="chart-card">
               <h3><span class="dot"></span>Price Distribution (Unit Price)</h3>
@@ -1306,6 +1504,27 @@ table tr:hover td { background: var(--bg-hover); }
 
         <!-- ═══════════ ANALYTICS: CORRELATION ═══════════ -->
         <div class="page" id="page-analytics-correlation">
+          <div class="analytics-filter-bar">
+            <div class="af-row">
+              <div class="af-group af-search">
+                <label>Search Products</label>
+                <input type="text" id="af-corr-search" placeholder="Search by name…">
+              </div>
+              <div class="af-group">
+                <label>Category</label>
+                <select id="af-corr-category"><option value="">All Categories</option></select>
+              </div>
+              <div class="af-group">
+                <label>Manufacturer</label>
+                <select id="af-corr-manufacturer"><option value="">All Manufacturers</option></select>
+              </div>
+              <div class="af-actions">
+                <button class="btn-sm" onclick="clearAnalyticsFilter('corr')">Clear</button>
+                <button class="btn-sm primary" onclick="loadCorrelationAnalytics()">Apply</button>
+              </div>
+            </div>
+            <div class="af-chip-row" id="af-corr-chips"></div>
+          </div>
           <div class="charts-grid">
             <div class="chart-card">
               <h3><span class="dot"></span>Unit Price vs Total Weight</h3>
@@ -1320,6 +1539,50 @@ table tr:hover td { background: var(--bg-hover); }
 
         <!-- ═══════════ BEST VALUE ═══════════ -->
         <div class="page" id="page-analytics-bestvalue">
+          <div class="analytics-filter-bar">
+            <div class="af-row">
+              <div class="af-group af-search">
+                <label>Search Products</label>
+                <input type="text" id="af-bv-search" placeholder="Search by name…">
+              </div>
+              <div class="af-group">
+                <label>Category</label>
+                <select id="af-bv-category"><option value="">All Categories</option></select>
+              </div>
+              <div class="af-group">
+                <label>Manufacturer</label>
+                <select id="af-bv-manufacturer"><option value="">All Manufacturers</option></select>
+              </div>
+              <div class="af-group" style="min-width:90px;flex:.5">
+                <label>Available</label>
+                <select id="af-bv-available">
+                  <option value="">All</option>
+                  <option value="true">In Stock</option>
+                </select>
+              </div>
+              <div class="af-group" style="min-width:90px;flex:.5">
+                <label>Mixed Pallet</label>
+                <select id="af-bv-mixed">
+                  <option value="">All</option>
+                  <option value="true">Yes</option>
+                </select>
+              </div>
+              <div class="af-group" style="min-width:90px;flex:.5">
+                <label>Limit</label>
+                <select id="af-bv-limit">
+                  <option value="20">Top 20</option>
+                  <option value="30" selected>Top 30</option>
+                  <option value="50">Top 50</option>
+                  <option value="100">Top 100</option>
+                </select>
+              </div>
+              <div class="af-actions">
+                <button class="btn-sm" onclick="clearAnalyticsFilter('bv')">Clear</button>
+                <button class="btn-sm primary" onclick="loadBestValueAnalytics()">Apply</button>
+              </div>
+            </div>
+            <div class="af-chip-row" id="af-bv-chips"></div>
+          </div>
           <div class="stats-grid" id="bestvalue-stats"></div>
           <div class="charts-grid">
             <div class="chart-card">
@@ -1352,6 +1615,34 @@ table tr:hover td { background: var(--bg-hover); }
 
         <!-- ═══════════ PALLET EFFICIENCY ═══════════ -->
         <div class="page" id="page-analytics-pallet">
+          <div class="analytics-filter-bar">
+            <div class="af-row">
+              <div class="af-group af-search">
+                <label>Search Products</label>
+                <input type="text" id="af-pallet-search" placeholder="Search by name…">
+              </div>
+              <div class="af-group">
+                <label>Category</label>
+                <select id="af-pallet-category"><option value="">All Categories</option></select>
+              </div>
+              <div class="af-group">
+                <label>Manufacturer</label>
+                <select id="af-pallet-manufacturer"><option value="">All Manufacturers</option></select>
+              </div>
+              <div class="af-group" style="min-width:90px;flex:.5">
+                <label>Available</label>
+                <select id="af-pallet-available">
+                  <option value="">All</option>
+                  <option value="true">In Stock</option>
+                </select>
+              </div>
+              <div class="af-actions">
+                <button class="btn-sm" onclick="clearAnalyticsFilter('pallet')">Clear</button>
+                <button class="btn-sm primary" onclick="loadPalletAnalytics()">Apply</button>
+              </div>
+            </div>
+            <div class="af-chip-row" id="af-pallet-chips"></div>
+          </div>
           <div class="charts-grid">
             <div class="chart-card">
               <h3><span class="dot" style="background:#7A5AF8"></span>Avg Cases per Pallet by Category</h3>
@@ -1377,6 +1668,34 @@ table tr:hover td { background: var(--bg-hover); }
 
         <!-- ═══════════ COST PER OZ ═══════════ -->
         <div class="page" id="page-analytics-costperoz">
+          <div class="analytics-filter-bar">
+            <div class="af-row">
+              <div class="af-group af-search">
+                <label>Search Products</label>
+                <input type="text" id="af-cpo-search" placeholder="Search by name…">
+              </div>
+              <div class="af-group">
+                <label>Category</label>
+                <select id="af-cpo-category"><option value="">All Categories</option></select>
+              </div>
+              <div class="af-group">
+                <label>Manufacturer</label>
+                <select id="af-cpo-manufacturer"><option value="">All Manufacturers</option></select>
+              </div>
+              <div class="af-group" style="min-width:90px;flex:.5">
+                <label>Available</label>
+                <select id="af-cpo-available">
+                  <option value="">All</option>
+                  <option value="true">In Stock</option>
+                </select>
+              </div>
+              <div class="af-actions">
+                <button class="btn-sm" onclick="clearAnalyticsFilter('cpo')">Clear</button>
+                <button class="btn-sm primary" onclick="loadCostPerOzAnalytics()">Apply</button>
+              </div>
+            </div>
+            <div class="af-chip-row" id="af-cpo-chips"></div>
+          </div>
           <div class="charts-grid">
             <div class="chart-card">
               <h3><span class="dot" style="background:#15B79E"></span>Avg Cost per Oz by Category</h3>
@@ -1751,6 +2070,7 @@ async function loadInitialData() {
     const [filtersRes] = await Promise.all([apiJson('/api/filters')]);
     filterOptions = filtersRes;
     populateFilterDropdowns();
+    populateAnalyticsFilterDropdowns();
   } catch {}
   showPage('dashboard');
 }
@@ -2166,11 +2486,132 @@ document.getElementById('f-search')?.addEventListener('keydown', e => {
 });
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   ANALYTICS FILTER HELPERS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+// Build query string from analytics filter inputs for a given prefix
+function getAnalyticsFilterQS(prefix) {
+  const p = new URLSearchParams();
+  const search = document.getElementById(`af-${prefix}-search`)?.value?.trim();
+  if (search) p.set('search', search);
+  const cat = document.getElementById(`af-${prefix}-category`)?.value;
+  if (cat) p.set('category', cat);
+  const mfr = document.getElementById(`af-${prefix}-manufacturer`)?.value;
+  if (mfr) p.set('manufacturer', mfr);
+  const mn = document.getElementById(`af-${prefix}-min-price`)?.value;
+  if (mn) p.set('min_price', mn);
+  const mx = document.getElementById(`af-${prefix}-max-price`)?.value;
+  if (mx) p.set('max_price', mx);
+  const avail = document.getElementById(`af-${prefix}-available`)?.value;
+  if (avail) p.set('available_only', avail);
+  const mixed = document.getElementById(`af-${prefix}-mixed`)?.value;
+  if (mixed) p.set('mixed_pallet_only', mixed);
+  return p.toString();
+}
+
+// Append analytics filter QS to a base URL
+function afUrl(base, prefix, extra = '') {
+  const qs = getAnalyticsFilterQS(prefix);
+  const parts = [base];
+  const allParams = [qs, extra].filter(Boolean).join('&');
+  if (allParams) {
+    parts[0] += (base.includes('?') ? '&' : '?') + allParams;
+  }
+  return parts[0];
+}
+
+// Populate the filter dropdowns for all analytics pages
+function populateAnalyticsFilterDropdowns() {
+  if (!filterOptions) return;
+  const prefixes = ['cat', 'mfr', 'price', 'corr', 'bv', 'pallet', 'cpo'];
+  prefixes.forEach(prefix => {
+    const catSel = document.getElementById(`af-${prefix}-category`);
+    if (catSel) {
+      catSel.innerHTML = '<option value="">All Categories</option>';
+      filterOptions.categories.forEach(c => {
+        catSel.innerHTML += `<option value="${c}">${c}</option>`;
+      });
+    }
+    const mfrSel = document.getElementById(`af-${prefix}-manufacturer`);
+    if (mfrSel) {
+      mfrSel.innerHTML = '<option value="">All Manufacturers</option>';
+      filterOptions.manufacturers.forEach(m => {
+        mfrSel.innerHTML += `<option value="${m}">${m}</option>`;
+      });
+    }
+    // Enter key triggers apply in search boxes
+    const searchEl = document.getElementById(`af-${prefix}-search`);
+    if (searchEl) {
+      searchEl.addEventListener('keydown', e => { if (e.key === 'Enter') renderCurrentPage(); });
+    }
+    // Auto-apply on select change
+    const selectors = [
+      `af-${prefix}-category`, `af-${prefix}-manufacturer`,
+      `af-${prefix}-available`, `af-${prefix}-mixed`,
+      `af-${prefix}-limit`, `af-${prefix}-sort`,
+    ];
+    selectors.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('change', () => renderCurrentPage());
+    });
+  });
+}
+
+// Clear all filter inputs for a given prefix
+function clearAnalyticsFilter(prefix) {
+  const search = document.getElementById(`af-${prefix}-search`);
+  if (search) search.value = '';
+  const cat = document.getElementById(`af-${prefix}-category`);
+  if (cat) cat.value = '';
+  const mfr = document.getElementById(`af-${prefix}-manufacturer`);
+  if (mfr) mfr.value = '';
+  const mn = document.getElementById(`af-${prefix}-min-price`);
+  if (mn) mn.value = '';
+  const mx = document.getElementById(`af-${prefix}-max-price`);
+  if (mx) mx.value = '';
+  const avail = document.getElementById(`af-${prefix}-available`);
+  if (avail) avail.value = '';
+  const mixed = document.getElementById(`af-${prefix}-mixed`);
+  if (mixed) mixed.value = '';
+  const limit = document.getElementById(`af-${prefix}-limit`);
+  if (limit) limit.value = limit.querySelector('option[selected]')?.value || limit.options[0]?.value || '';
+  const sort = document.getElementById(`af-${prefix}-sort`);
+  if (sort) sort.value = sort.querySelector('option[selected]')?.value || sort.options[0]?.value || '';
+  // Clear chips
+  const chips = document.getElementById(`af-${prefix}-chips`);
+  if (chips) chips.innerHTML = '';
+  // Reload the current analytics page
+  renderCurrentPage();
+}
+
+// Show active filter chips
+function renderFilterChips(prefix) {
+  const chips = document.getElementById(`af-${prefix}-chips`);
+  if (!chips) return;
+  chips.innerHTML = '';
+  const search = document.getElementById(`af-${prefix}-search`)?.value?.trim();
+  if (search) chips.innerHTML += `<span class="af-chip">Search: "${search}" <span class="af-chip-x" onclick="document.getElementById('af-${prefix}-search').value='';renderCurrentPage()">×</span></span>`;
+  const cat = document.getElementById(`af-${prefix}-category`);
+  if (cat?.value) chips.innerHTML += `<span class="af-chip">Category: ${cat.value} <span class="af-chip-x" onclick="document.getElementById('af-${prefix}-category').value='';renderCurrentPage()">×</span></span>`;
+  const mfr = document.getElementById(`af-${prefix}-manufacturer`);
+  if (mfr?.value) chips.innerHTML += `<span class="af-chip">Manufacturer: ${mfr.value} <span class="af-chip-x" onclick="document.getElementById('af-${prefix}-manufacturer').value='';renderCurrentPage()">×</span></span>`;
+  const mn = document.getElementById(`af-${prefix}-min-price`);
+  if (mn?.value) chips.innerHTML += `<span class="af-chip">Min: $${mn.value} <span class="af-chip-x" onclick="document.getElementById('af-${prefix}-min-price').value='';renderCurrentPage()">×</span></span>`;
+  const mx = document.getElementById(`af-${prefix}-max-price`);
+  if (mx?.value) chips.innerHTML += `<span class="af-chip">Max: $${mx.value} <span class="af-chip-x" onclick="document.getElementById('af-${prefix}-max-price').value='';renderCurrentPage()">×</span></span>`;
+  const avail = document.getElementById(`af-${prefix}-available`);
+  if (avail?.value) chips.innerHTML += `<span class="af-chip">In Stock Only <span class="af-chip-x" onclick="document.getElementById('af-${prefix}-available').value='';renderCurrentPage()">×</span></span>`;
+  const mixed = document.getElementById(`af-${prefix}-mixed`);
+  if (mixed?.value) chips.innerHTML += `<span class="af-chip">Mixed Pallet <span class="af-chip-x" onclick="document.getElementById('af-${prefix}-mixed').value='';renderCurrentPage()">×</span></span>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    ANALYTICS: CATEGORY
    ═══════════════════════════════════════════════════════════════════════════ */
 async function loadCategoryAnalytics() {
   try {
-    const data = await apiJson('/api/analytics/by-category');
+    renderFilterChips('cat');
+    const data = await apiJson(afUrl('/api/analytics/by-category', 'cat'));
     const sorted = [...data].sort((a, b) => b.count - a.count);
 
     makeChart('chart-cat-count', {
@@ -2214,6 +2655,19 @@ async function loadCategoryAnalytics() {
       },
     });
 
+    // Summary stats
+    const totalCatProducts = sorted.reduce((s, d) => s + d.count, 0);
+    const avgCatPrice = sorted.length ? (sorted.reduce((s, d) => s + d.avg_unit_price, 0) / sorted.length).toFixed(2) : '0.00';
+    const minCatPrice = sorted.length ? Math.min(...sorted.map(d => d.min_unit_price)).toFixed(2) : '0.00';
+    const maxCatPrice = sorted.length ? Math.max(...sorted.map(d => d.max_unit_price)).toFixed(2) : '0.00';
+    document.getElementById('cat-summary-stats').innerHTML = `
+      <div class="stat-card"><div class="stat-label">Categories</div><div class="stat-value">${sorted.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Total Products</div><div class="stat-value">${totalCatProducts.toLocaleString()}</div></div>
+      <div class="stat-card"><div class="stat-label">Avg Unit Price</div><div class="stat-value">$${avgCatPrice}</div></div>
+      <div class="stat-card"><div class="stat-label">Price Range</div><div class="stat-value">$${minCatPrice}–$${maxCatPrice}</div></div>
+    `;
+    document.getElementById('cat-result-count').textContent = `Showing ${sorted.length} categories • ${totalCatProducts.toLocaleString()} products`;
+
     // Detail table
     const tbody = document.querySelector('#cat-detail-table tbody');
     tbody.innerHTML = sorted.map(d => `
@@ -2235,7 +2689,10 @@ async function loadCategoryAnalytics() {
    ═══════════════════════════════════════════════════════════════════════════ */
 async function loadManufacturerAnalytics() {
   try {
-    const data = await apiJson('/api/analytics/by-manufacturer?limit=30&sort=count');
+    renderFilterChips('mfr');
+    const limit = document.getElementById('af-mfr-limit')?.value || '30';
+    const sort = document.getElementById('af-mfr-sort')?.value || 'count';
+    const data = await apiJson(afUrl('/api/analytics/by-manufacturer', 'mfr', `limit=${limit}&sort=${sort}`));
     const sorted = [...data].sort((a, b) => b.count - a.count);
 
     makeChart('chart-mfr-count', {
@@ -2279,6 +2736,21 @@ async function loadManufacturerAnalytics() {
       },
     });
 
+    // Summary stats
+    const totalProducts = sorted.reduce((s, d) => s + d.count, 0);
+    const avgPrice = sorted.length ? (sorted.reduce((s, d) => s + d.avg_unit_price, 0) / sorted.length).toFixed(2) : '0.00';
+    const minPrice = sorted.length ? Math.min(...sorted.map(d => d.min_unit_price)).toFixed(2) : '0.00';
+    const maxPrice = sorted.length ? Math.max(...sorted.map(d => d.max_unit_price)).toFixed(2) : '0.00';
+    const avgDel = sorted.length ? (sorted.reduce((s, d) => s + (d.avg_delivered || 0), 0) / sorted.length).toFixed(2) : '0.00';
+    document.getElementById('mfr-summary-stats').innerHTML = `
+      <div class="stat-card"><div class="stat-label">Manufacturers</div><div class="stat-value">${sorted.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Total Products</div><div class="stat-value">${totalProducts.toLocaleString()}</div></div>
+      <div class="stat-card"><div class="stat-label">Avg Unit Price</div><div class="stat-value">$${avgPrice}</div></div>
+      <div class="stat-card"><div class="stat-label">Price Range</div><div class="stat-value">$${minPrice}–$${maxPrice}</div></div>
+      <div class="stat-card"><div class="stat-label">Avg Delivered</div><div class="stat-value">$${avgDel}</div></div>
+    `;
+    document.getElementById('mfr-result-count').textContent = `Showing ${sorted.length} manufacturers • ${totalProducts.toLocaleString()} products`;
+
     // Detail table
     const tbody = document.querySelector('#mfr-detail-table tbody');
     tbody.innerHTML = sorted.map(d => `
@@ -2300,11 +2772,12 @@ async function loadManufacturerAnalytics() {
    ═══════════════════════════════════════════════════════════════════════════ */
 async function loadPricingAnalytics() {
   try {
+    renderFilterChips('price');
     const [distData, topExp, topCheap, catData] = await Promise.all([
-      apiJson('/api/analytics/price-distribution?bins=30'),
-      apiJson('/api/analytics/top-value?metric=price_per_unit&direction=desc&limit=20'),
-      apiJson('/api/analytics/top-value?metric=price_per_unit&direction=asc&limit=20'),
-      apiJson('/api/analytics/by-category'),
+      apiJson(afUrl('/api/analytics/price-distribution', 'price', 'bins=30')),
+      apiJson(afUrl('/api/analytics/top-value', 'price', 'metric=price_per_unit&direction=desc&limit=20')),
+      apiJson(afUrl('/api/analytics/top-value', 'price', 'metric=price_per_unit&direction=asc&limit=20')),
+      apiJson(afUrl('/api/analytics/by-category', 'price')),
     ]);
 
     // Price distribution
@@ -2423,9 +2896,10 @@ async function loadPricingAnalytics() {
    ═══════════════════════════════════════════════════════════════════════════ */
 async function loadCorrelationAnalytics() {
   try {
+    renderFilterChips('corr');
     const [scatterData, leadData] = await Promise.all([
-      apiJson('/api/analytics/price-vs-volume'),
-      apiJson('/api/analytics/lead-time'),
+      apiJson(afUrl('/api/analytics/price-vs-volume', 'corr')),
+      apiJson(afUrl('/api/analytics/lead-time', 'corr')),
     ]);
 
     // Scatter: Unit Price vs Total Weight
@@ -2492,7 +2966,9 @@ async function loadCorrelationAnalytics() {
    ═══════════════════════════════════════════════════════════════════════════ */
 async function loadBestValueAnalytics(direction = 'desc') {
   try {
-    const data = await apiJson('/api/analytics/best-value?limit=30&direction=' + direction);
+    renderFilterChips('bv');
+    const limit = document.getElementById('af-bv-limit')?.value || '30';
+    const data = await apiJson(afUrl('/api/analytics/best-value', 'bv', `limit=${limit}&direction=${direction}`));
     
     if (data.length > 0) {
       // Stats
@@ -2590,7 +3066,8 @@ async function loadBestValueAnalytics(direction = 'desc') {
    ═══════════════════════════════════════════════════════════════════════════ */
 async function loadPalletAnalytics() {
   try {
-    const data = await apiJson('/api/analytics/pallet-efficiency');
+    renderFilterChips('pallet');
+    const data = await apiJson(afUrl('/api/analytics/pallet-efficiency', 'pallet'));
 
     makeChart('chart-pallet-cases', {
       type: 'bar',
@@ -2650,7 +3127,8 @@ async function loadPalletAnalytics() {
    ═══════════════════════════════════════════════════════════════════════════ */
 async function loadCostPerOzAnalytics() {
   try {
-    const data = await apiJson('/api/analytics/cost-per-oz');
+    renderFilterChips('cpo');
+    const data = await apiJson(afUrl('/api/analytics/cost-per-oz', 'cpo'));
 
     makeChart('chart-cpo-avg', {
       type: 'bar',
