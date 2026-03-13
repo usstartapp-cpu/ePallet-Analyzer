@@ -11,8 +11,9 @@ venv/
 .venv/
 env/
 
-# Debug screenshots
+# Debug screenshots & HTML dumps
 debug_*.png
+debug_*.html
 
 # IDE
 .vscode/
