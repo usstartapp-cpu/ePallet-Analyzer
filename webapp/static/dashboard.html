@@ -1002,6 +1002,45 @@ tr:hover td { background: var(--bg-hover); }
   border-left: 3px solid var(--accent); margin-left: -3px;
   font-weight: 700;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   DEMO MODE — Big obvious button + banner
+   ═══════════════════════════════════════════════════════════════════ */
+.btn-demo {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 18px;
+  border-radius: 20px; font-size: 13px; font-weight: 800; cursor: pointer;
+  font-family: var(--font); border: 2px solid #F59E0B;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: #000; text-transform: uppercase; letter-spacing: 0.5px;
+  box-shadow: 0 0 16px rgba(245,158,11,0.35), 0 2px 8px rgba(0,0,0,0.2);
+  transition: all 0.25s ease; position: relative; overflow: hidden;
+  animation: demoPulse 2.5s ease-in-out infinite;
+}
+.btn-demo:hover {
+  transform: scale(1.06); box-shadow: 0 0 24px rgba(245,158,11,0.5), 0 4px 12px rgba(0,0,0,0.3);
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+}
+.btn-demo:active { transform: scale(0.97); }
+.btn-demo.active {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  border-color: #EF4444; animation: none;
+  box-shadow: 0 0 16px rgba(239,68,68,0.35), 0 2px 8px rgba(0,0,0,0.2);
+}
+@keyframes demoPulse {
+  0%, 100% { box-shadow: 0 0 16px rgba(245,158,11,0.35), 0 2px 8px rgba(0,0,0,0.2); }
+  50% { box-shadow: 0 0 28px rgba(245,158,11,0.6), 0 4px 16px rgba(0,0,0,0.25); }
+}
+.demo-banner {
+  display: none; padding: 10px 20px; text-align: center; font-weight: 700; font-size: 13px;
+  background: repeating-linear-gradient(-45deg, #F59E0B, #F59E0B 10px, #FBBF24 10px, #FBBF24 20px);
+  color: #000; letter-spacing: 0.5px; animation: demoStripe 1s linear infinite;
+  background-size: 28.28px 28.28px; flex-shrink: 0;
+}
+.demo-banner.visible { display: block; }
+@keyframes demoStripe {
+  0% { background-position: 0 0; }
+  100% { background-position: 28.28px 0; }
+}
 </style>
 </head>
 <body>
@@ -1087,11 +1126,14 @@ tr:hover td { background: var(--bg-hover); }
         <span style="font-weight:700; font-size:15px;" id="topbarTitle">Overview</span>
         <span style="color:var(--text-tertiary); font-size:12px; margin-left:8px;" id="topbarVendor">All Vendors</span>
       </div>
-      <div style="display:flex; gap:8px;">
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button class="btn btn-demo" id="demoToggleBtn" onclick="toggleDemoMode()">🧪 Load Demo Data</button>
         <button class="btn btn-ghost btn-sm" onclick="refreshAll()">🔄 Refresh</button>
         <button class="btn btn-ghost btn-sm" onclick="exportCSV()">📥 Export CSV</button>
       </div>
     </div>
+
+    <div class="demo-banner" id="demoBanner">⚠️ DEMO MODE — Showing synthetic sample data for demonstration purposes. Click "Exit Demo" to return to live data.</div>
 
     <div class="content">
 
@@ -1580,12 +1622,384 @@ const DEFAULT_DEALS_LIMIT_OVERVIEW = 12;    // How many deal cards on Overview
 const DEFAULT_DEALS_LIMIT_COMPARE  = 25;    // How many deal cards on Price Intel
 // ═══════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════
+// DEMO MODE — Fake data for showcasing the dashboard
+// ═══════════════════════════════════════════════════════════════════
+let DEMO_MODE = false;
+
+function toggleDemoMode() {
+  DEMO_MODE = !DEMO_MODE;
+  const btn = document.getElementById('demoToggleBtn');
+  const banner = document.getElementById('demoBanner');
+  if (DEMO_MODE) {
+    btn.textContent = '🚫 Exit Demo';
+    btn.classList.add('active');
+    banner.classList.add('visible');
+    // Populate vendor selector with demo vendors
+    const sel = document.getElementById('vendorSelect');
+    sel.innerHTML = '<option value="all">🏢 All Vendors</option>';
+    DEMO_VENDORS.forEach(v => {
+      sel.innerHTML += `<option value="${v.slug}">${v.name} (${fmtN(v.product_count)})</option>`;
+    });
+    // Populate sidebar vendors
+    const list = document.getElementById('vendorList');
+    list.innerHTML = '';
+    DEMO_VENDORS.forEach(v => {
+      const li = document.createElement('li');
+      li.innerHTML = `<div class="vendor-item" data-slug="${v.slug}" onclick="selectVendor('${v.slug}')">
+        <span class="vendor-dot online"></span>
+        <div class="vendor-info"><div class="vendor-name">${v.name}</div><div class="vendor-count">${fmtN(v.product_count)} products</div></div>
+      </div>`;
+      list.appendChild(li);
+    });
+    showSection('overview');
+  } else {
+    btn.textContent = '🧪 Load Demo Data';
+    btn.classList.remove('active');
+    banner.classList.remove('visible');
+    // Reload real data
+    initDashboard();
+  }
+}
+
+// ── Demo Vendor Registry ──────────────────────────────────────────
+const DEMO_VENDORS = [
+  { id: "d1", name: "Amazon Business", slug: "amazon", website: "https://business.amazon.com", product_count: 4820, scrape_method: "API + Playwright", scrape_enabled: true },
+  { id: "d2", name: "ePallet", slug: "epallet", website: "https://epallet.com", product_count: 3215, scrape_method: "API", scrape_enabled: true },
+  { id: "d3", name: "Walmart Business", slug: "walmart", website: "https://business.walmart.com", product_count: 2948, scrape_method: "Playwright", scrape_enabled: true },
+  { id: "d4", name: "WebstaurantStore", slug: "webstaurant", website: "https://webstaurantstore.com", product_count: 2105, scrape_method: "Playwright", scrape_enabled: true },
+  { id: "d5", name: "US Foods", slug: "usfoods", website: "https://usfoods.com", product_count: 1847, scrape_method: "API", scrape_enabled: true },
+  { id: "d6", name: "McLane FoodService", slug: "mclane", website: "https://mclanefs.com", product_count: 1320, scrape_method: "Playwright", scrape_enabled: true },
+  { id: "d7", name: "Costco Business", slug: "costco", website: "https://costcobusinessdelivery.com", product_count: 987, scrape_method: "Playwright", scrape_enabled: true },
+];
+
+// ── Helper: generate demo timestamps ──────────────────────────────
+function demoTime(minutesAgo) {
+  return new Date(Date.now() - minutesAgo * 60000).toISOString();
+}
+
+// ── Demo response builder ─────────────────────────────────────────
+function getDemoResponse(path) {
+  // Strip query params for matching
+  const base = path.split('?')[0];
+  const params = new URLSearchParams(path.includes('?') ? path.split('?')[1] : '');
+
+  // ── /me ──
+  if (base === '/me') return { logged_in: true, username: 'michael' };
+
+  // ── /vendors ──
+  if (base === '/vendors') return DEMO_VENDORS.map(v => ({
+    ...v,
+    last_run: { status: 'completed', started_at: demoTime(Math.floor(Math.random()*120)+10), products_found: v.product_count, products_new: Math.floor(Math.random()*45), price_changes: Math.floor(Math.random()*28), errors: 0, duration_secs: Math.floor(Math.random()*180)+60 }
+  }));
+
+  // ── /summary ──
+  if (base === '/summary') return {
+    total_products: 17242, total_vendors: 7, total_categories: 68, total_brands: 312, price_changes: 147, total_runs: 93,
+  };
+
+  // ── /analytics/by-vendor ──
+  if (base === '/analytics/by-vendor') return DEMO_VENDORS.map(v => ({
+    vendor: v.name, slug: v.slug, product_count: v.product_count,
+    avg_price: +(18 + Math.random() * 32).toFixed(2),
+    min_price: +(1.49 + Math.random() * 3).toFixed(2),
+    max_price: +(89 + Math.random() * 150).toFixed(2),
+  })).sort((a, b) => b.product_count - a.product_count);
+
+  // ── /analytics/by-category ──
+  if (base === '/analytics/by-category') {
+    const cats = [
+      { category: "Snacks & Chips", count: 2840, avg_price: 24.50 },
+      { category: "Canned Goods", count: 2215, avg_price: 18.75 },
+      { category: "Beverages", count: 1950, avg_price: 22.30 },
+      { category: "Condiments & Sauces", count: 1680, avg_price: 15.20 },
+      { category: "Baking & Cooking", count: 1520, avg_price: 19.80 },
+      { category: "Pasta & Grains", count: 1340, avg_price: 14.50 },
+      { category: "Dairy & Refrigerated", count: 1180, avg_price: 28.40 },
+      { category: "Candy & Chocolate", count: 980, avg_price: 21.60 },
+      { category: "Breakfast & Cereal", count: 870, avg_price: 16.90 },
+      { category: "Health & Organic", count: 760, avg_price: 32.10 },
+      { category: "Paper & Cleaning", count: 620, avg_price: 35.20 },
+      { category: "Frozen Foods", count: 510, avg_price: 26.80 },
+      { category: "Pet Supplies", count: 380, avg_price: 29.40 },
+      { category: "International Foods", count: 250, avg_price: 18.50 },
+      { category: "Baby & Infant", count: 147, avg_price: 24.90 },
+    ];
+    // Vary prices per vendor for heatmap realism
+    const vendorParam = params.get('vendor');
+    const vendorMultipliers = { amazon: 1.15, epallet: 0.82, walmart: 0.95, webstaurant: 1.05, usfoods: 0.88, mclane: 1.02, costco: 0.78 };
+    const mult = vendorMultipliers[vendorParam] || 1.0;
+    return cats.map(c => ({
+      ...c,
+      count: vendorParam ? Math.floor(c.count * (0.2 + Math.random() * 0.5)) : c.count,
+      avg_price: +(c.avg_price * mult * (0.92 + Math.random()*0.16)).toFixed(2),
+      min_price: +(c.avg_price * mult * 0.3).toFixed(2),
+      max_price: +(c.avg_price * mult * 2.2).toFixed(2),
+    }));
+  }
+
+  // ── /analytics/by-brand ──
+  if (base === '/analytics/by-brand') return [
+    { brand: "Frito-Lay", count: 680, avg_price: 28.50 },
+    { brand: "Barilla", count: 520, avg_price: 14.20 },
+    { brand: "Del Monte", count: 480, avg_price: 12.80 },
+    { brand: "Ghirardelli", count: 390, avg_price: 32.50 },
+    { brand: "Hershey's", count: 360, avg_price: 24.60 },
+    { brand: "Kraft Heinz", count: 340, avg_price: 18.90 },
+    { brand: "General Mills", count: 310, avg_price: 22.40 },
+    { brand: "Kellogg's", count: 285, avg_price: 19.80 },
+    { brand: "Coca-Cola", count: 260, avg_price: 26.10 },
+    { brand: "Pepsi Co", count: 245, avg_price: 25.40 },
+    { brand: "Nestlé", count: 230, avg_price: 21.30 },
+    { brand: "Mondelez", count: 215, avg_price: 23.70 },
+    { brand: "ConAgra", count: 190, avg_price: 16.50 },
+    { brand: "Campbell's", count: 175, avg_price: 15.20 },
+    { brand: "Unilever", count: 160, avg_price: 20.80 },
+  ];
+
+  // ── /analytics/price-changes ──
+  if (base === '/analytics/price-changes') {
+    const items = [
+      { product_name: "Barilla Spaghetti No. 5 - 16oz/8pk", brand: "Barilla", category: "Pasta & Grains", unit_price: 11.48, last_price: 13.20, vendors: { name: "ePallet", slug: "epallet" } },
+      { product_name: "Ghirardelli Dark Chocolate Chips 60% - 10oz/12ct", brand: "Ghirardelli", category: "Baking & Cooking", unit_price: 42.99, last_price: 45.50, vendors: { name: "Amazon Business", slug: "amazon" } },
+      { product_name: "Lay's Classic Potato Chips - 1oz/40ct", brand: "Frito-Lay", category: "Snacks & Chips", unit_price: 18.98, last_price: 16.50, vendors: { name: "Walmart Business", slug: "walmart" } },
+      { product_name: "Del Monte Canned Peaches - 15oz/12ct", brand: "Del Monte", category: "Canned Goods", unit_price: 16.80, last_price: 19.44, vendors: { name: "US Foods", slug: "usfoods" } },
+      { product_name: "Heinz Ketchup - 32oz/6pk", brand: "Kraft Heinz", category: "Condiments & Sauces", unit_price: 22.49, last_price: 24.99, vendors: { name: "WebstaurantStore", slug: "webstaurant" } },
+      { product_name: "Cheerios Original - 18oz/10ct", brand: "General Mills", category: "Breakfast & Cereal", unit_price: 38.50, last_price: 36.20, vendors: { name: "McLane FoodService", slug: "mclane" } },
+      { product_name: "Hershey's Milk Chocolate Bars - 1.55oz/36ct", brand: "Hershey's", category: "Candy & Chocolate", unit_price: 29.99, last_price: 32.88, vendors: { name: "Costco Business", slug: "costco" } },
+      { product_name: "Coca-Cola Classic - 12oz/24pk", brand: "Coca-Cola", category: "Beverages", unit_price: 12.48, last_price: 11.98, vendors: { name: "Amazon Business", slug: "amazon" } },
+    ];
+    return items.map(p => ({
+      ...p, sku: "SKU-" + Math.random().toString(36).substr(2, 8).toUpperCase(),
+      price_changed: true, last_seen_at: demoTime(Math.floor(Math.random() * 120)),
+      price_diff: +(p.unit_price - p.last_price).toFixed(2),
+      price_pct_change: +(((p.unit_price - p.last_price) / p.last_price) * 100).toFixed(2),
+    }));
+  }
+
+  // ── /scrape-runs ──
+  if (base === '/scrape-runs') return DEMO_VENDORS.map((v, i) => ({
+    id: `run-${i}`, vendor_id: v.id, vendors: { name: v.name, slug: v.slug },
+    status: i === 0 ? 'running' : 'completed', method: v.scrape_method, triggered_by: i % 2 === 0 ? 'scheduled' : 'manual',
+    products_found: v.product_count, products_new: Math.floor(Math.random()*60)+5,
+    products_updated: Math.floor(Math.random()*200)+50, price_changes: Math.floor(Math.random()*35),
+    errors: i === 3 ? 2 : 0, duration_secs: Math.floor(Math.random()*250)+45,
+    started_at: demoTime(i * 35 + Math.floor(Math.random() * 30)),
+  }));
+
+  // ── /filters ──
+  if (base === '/filters') return {
+    categories: ["Snacks & Chips","Canned Goods","Beverages","Condiments & Sauces","Baking & Cooking","Pasta & Grains","Dairy & Refrigerated","Candy & Chocolate","Breakfast & Cereal","Health & Organic"],
+    brands: ["Frito-Lay","Barilla","Del Monte","Ghirardelli","Hershey's","Kraft Heinz","General Mills","Kellogg's","Coca-Cola","Pepsi Co","Nestlé","Mondelez"],
+  };
+
+  // ── /savings-summary ──
+  if (base === '/savings-summary') return {
+    total_savings: 14827.50, products_compared: 892, products_with_savings: 634,
+    total_baseline_spend: 68420.00, savings_pct: 21.7,
+    baseline_vendor: "amazon", baseline_vendor_name: "Amazon Business",
+  };
+
+  // ── /market-pulse ──
+  if (base === '/market-pulse') return { events: [
+    { type: "price_change", icon: "📉", title: "Price drop: Barilla Spaghetti No. 5 — 16oz/8pk", detail: "▼ $1.72 (13.0%) at ePallet", vendor: "ePallet", timestamp: demoTime(3), severity: "positive" },
+    { type: "scrape_complete", icon: "🤖", title: "Scrape completed: Amazon Business", detail: "Found 4,820 products, 38 new, 24 price changes", vendor: "Amazon Business", timestamp: demoTime(12), severity: "info" },
+    { type: "price_change", icon: "📉", title: "Price drop: Del Monte Peaches 15oz/12ct", detail: "▼ $2.64 (13.6%) at US Foods", vendor: "US Foods", timestamp: demoTime(18), severity: "positive" },
+    { type: "price_change", icon: "📈", title: "Price increase: Lay's Classic 1oz/40ct", detail: "▲ $2.48 (15.0%) at Walmart Business", vendor: "Walmart", timestamp: demoTime(25), severity: "negative" },
+    { type: "scrape_complete", icon: "🤖", title: "Scrape completed: ePallet", detail: "Found 3,215 products, 52 new, 18 price changes", vendor: "ePallet", timestamp: demoTime(35), severity: "info" },
+    { type: "price_change", icon: "📉", title: "Price drop: Heinz Ketchup 32oz/6pk", detail: "▼ $2.50 (10.0%) at WebstaurantStore", vendor: "WebstaurantStore", timestamp: demoTime(42), severity: "positive" },
+    { type: "scrape_complete", icon: "🤖", title: "Scrape completed: Walmart Business", detail: "Found 2,948 products, 21 new, 31 price changes", vendor: "Walmart", timestamp: demoTime(55), severity: "info" },
+    { type: "price_change", icon: "📉", title: "Price drop: Hershey's Bars 36ct", detail: "▼ $2.89 (8.8%) at Costco Business", vendor: "Costco Business", timestamp: demoTime(68), severity: "positive" },
+    { type: "price_change", icon: "📈", title: "Price increase: Cheerios 18oz/10ct", detail: "▲ $2.30 (6.4%) at McLane FoodService", vendor: "McLane", timestamp: demoTime(80), severity: "negative" },
+    { type: "scrape_complete", icon: "🤖", title: "Scrape completed: US Foods", detail: "Found 1,847 products, 14 new, 9 price changes", vendor: "US Foods", timestamp: demoTime(95), severity: "info" },
+  ]};
+
+  // ── /ai-insights ──
+  if (base === '/ai-insights') return { insights: [
+    { type: "catalog", icon: "📦", title: "Largest Catalog", text: "Amazon Business leads with 4,820 products — 1,605 more than ePallet. Combined, 7 vendors provide 17,242 products for cross-comparison.", metric: 4820 },
+    { type: "quality", icon: "🎯", title: "Data Quality Leader", text: "ePallet has the best UPC coverage at 94.2%. McLane FoodService lags at 32.8% — improving this would unlock 860+ new apples-to-apples comparisons.", metric: 94.2 },
+    { type: "price", icon: "💲", title: "Price Competitiveness", text: "ePallet has the lowest average price at $18.42/item — 34% cheaper than Amazon Business ($27.92 avg). Switching to ePallet as primary could save $14,827 annually.", metric: 34 },
+    { type: "activity", icon: "🔄", title: "Market Activity", text: "147 price changes detected in the last 24 hours. Walmart Business had the most volatility with 31 changes. 68% of changes were price drops — a buyer's market.", metric: 147 },
+    { type: "stock", icon: "📈", title: "Stock Availability", text: "Average in-stock rate is 87.3% across all vendors. Costco Business leads with 96.1% of items in stock. WebstaurantStore has 12% out-of-stock — monitor carefully.", metric: 87.3 },
+    { type: "recommendation", icon: "🚀", title: "Next Step", text: "With 17,242 products across 7 vendors, you're building a strong price intelligence database. Focus on improving UPC coverage for McLane to unlock 860+ new cross-vendor comparisons.", metric: 17242 },
+  ], vendor_count: 7, total_products: 17242 };
+
+  // ── /vendor-radar ──
+  if (base === '/vendor-radar') return {
+    vendors: [
+      { vendor: "Amazon Business", slug: "amazon", scores: { "Catalog Size": 100, "Price Competitiveness": 42, "UPC Coverage": 78, "Brand Data": 92, "Pack Info": 85, "In Stock Rate": 88 }},
+      { vendor: "ePallet", slug: "epallet", scores: { "Catalog Size": 67, "Price Competitiveness": 95, "UPC Coverage": 94, "Brand Data": 88, "Pack Info": 91, "In Stock Rate": 82 }},
+      { vendor: "Walmart Business", slug: "walmart", scores: { "Catalog Size": 61, "Price Competitiveness": 78, "UPC Coverage": 72, "Brand Data": 85, "Pack Info": 68, "In Stock Rate": 91 }},
+      { vendor: "WebstaurantStore", slug: "webstaurant", scores: { "Catalog Size": 44, "Price Competitiveness": 82, "UPC Coverage": 58, "Brand Data": 75, "Pack Info": 72, "In Stock Rate": 79 }},
+      { vendor: "US Foods", slug: "usfoods", scores: { "Catalog Size": 38, "Price Competitiveness": 88, "UPC Coverage": 65, "Brand Data": 70, "Pack Info": 80, "In Stock Rate": 85 }},
+      { vendor: "McLane FoodService", slug: "mclane", scores: { "Catalog Size": 27, "Price Competitiveness": 72, "UPC Coverage": 33, "Brand Data": 62, "Pack Info": 55, "In Stock Rate": 74 }},
+      { vendor: "Costco Business", slug: "costco", scores: { "Catalog Size": 20, "Price Competitiveness": 91, "UPC Coverage": 82, "Brand Data": 90, "Pack Info": 88, "In Stock Rate": 96 }},
+    ],
+    dimensions: ["Catalog Size", "Price Competitiveness", "UPC Coverage", "Brand Data", "Pack Info", "In Stock Rate"],
+  };
+
+  // ── /vendor-leaderboard ──
+  if (base === '/vendor-leaderboard') return { leaderboard: [
+    { rank: 1, vendor: "ePallet", slug: "epallet", composite_score: 89.2, product_count: 3215, avg_price: 18.42, categories: 52, scores: { catalog: 64, data_quality: 92, stock_health: 82, diversity: 100 }, upc_pct: 94.2, stock_pct: 82.0 },
+    { rank: 2, vendor: "Amazon Business", slug: "amazon", composite_score: 83.7, product_count: 4820, avg_price: 27.92, categories: 68, scores: { catalog: 100, data_quality: 85, stock_health: 88, diversity: 100 }, upc_pct: 78.0, stock_pct: 88.0 },
+    { rank: 3, vendor: "Costco Business", slug: "costco", composite_score: 80.5, product_count: 987, avg_price: 22.10, categories: 34, scores: { catalog: 20, data_quality: 90, stock_health: 96, diversity: 85 }, upc_pct: 82.0, stock_pct: 96.1 },
+    { rank: 4, vendor: "Walmart Business", slug: "walmart", composite_score: 75.1, product_count: 2948, avg_price: 24.80, categories: 55, scores: { catalog: 59, data_quality: 75, stock_health: 91, diversity: 100 }, upc_pct: 72.0, stock_pct: 91.0 },
+    { rank: 5, vendor: "US Foods", slug: "usfoods", composite_score: 72.4, product_count: 1847, avg_price: 20.60, categories: 42, scores: { catalog: 37, data_quality: 72, stock_health: 85, diversity: 100 }, upc_pct: 65.0, stock_pct: 85.0 },
+    { rank: 6, vendor: "WebstaurantStore", slug: "webstaurant", composite_score: 66.8, product_count: 2105, avg_price: 26.30, categories: 38, scores: { catalog: 42, data_quality: 65, stock_health: 79, diversity: 95 }, upc_pct: 58.0, stock_pct: 79.0 },
+    { rank: 7, vendor: "McLane FoodService", slug: "mclane", composite_score: 52.3, product_count: 1320, avg_price: 23.50, categories: 28, scores: { catalog: 26, data_quality: 48, stock_health: 74, diversity: 70 }, upc_pct: 32.8, stock_pct: 74.0 },
+  ]};
+
+  // ── /category-savings ──
+  if (base === '/category-savings') return { categories: [
+    { category: "Snacks & Chips", products_compared: 142, total_savings: 3250.40, total_baseline_spend: 12800.00, savings_pct: 25.4 },
+    { category: "Canned Goods", products_compared: 118, total_savings: 2890.20, total_baseline_spend: 9500.00, savings_pct: 30.4 },
+    { category: "Beverages", products_compared: 105, total_savings: 2410.80, total_baseline_spend: 11200.00, savings_pct: 21.5 },
+    { category: "Baking & Cooking", products_compared: 88, total_savings: 1980.50, total_baseline_spend: 7800.00, savings_pct: 25.4 },
+    { category: "Condiments & Sauces", products_compared: 76, total_savings: 1620.30, total_baseline_spend: 6400.00, savings_pct: 25.3 },
+    { category: "Pasta & Grains", products_compared: 68, total_savings: 1380.00, total_baseline_spend: 5200.00, savings_pct: 26.5 },
+    { category: "Candy & Chocolate", products_compared: 52, total_savings: 890.40, total_baseline_spend: 4800.00, savings_pct: 18.6 },
+    { category: "Dairy & Refrigerated", products_compared: 48, total_savings: 720.60, total_baseline_spend: 5600.00, savings_pct: 12.9 },
+    { category: "Breakfast & Cereal", products_compared: 42, total_savings: 580.20, total_baseline_spend: 3800.00, savings_pct: 15.3 },
+    { category: "Health & Organic", products_compared: 35, total_savings: 460.80, total_baseline_spend: 4200.00, savings_pct: 11.0 },
+  ], baseline_vendor: "amazon" };
+
+  // ── /top-deals ──
+  if (base === '/top-deals') {
+    const demoDeals = [
+      { baseline_product: "Barilla Spaghetti No. 5 — 16oz/8pk", baseline_sku: "BRL-SP5-16-8", baseline_price: 13.20, brand: "Barilla", category: "Pasta & Grains", baseline_pack_size: "16oz / 8pk", baseline_image: null, baseline_in_stock: true },
+      { baseline_product: "Ghirardelli Premium Baking Cocoa — 8oz/6ct", baseline_sku: "GHR-PBC-8-6", baseline_price: 45.50, brand: "Ghirardelli", category: "Baking & Cooking", baseline_pack_size: "8oz / 6ct", baseline_image: null, baseline_in_stock: true },
+      { baseline_product: "Lay's Classic Potato Chips — 1oz/40ct", baseline_sku: "LAY-CPC-1-40", baseline_price: 22.99, brand: "Frito-Lay", category: "Snacks & Chips", baseline_pack_size: "1oz / 40ct", baseline_image: null, baseline_in_stock: true },
+      { baseline_product: "Del Monte Canned Peaches — 15oz/12ct", baseline_sku: "DLM-CP-15-12", baseline_price: 19.44, brand: "Del Monte", category: "Canned Goods", baseline_pack_size: "15oz / 12ct", baseline_image: null, baseline_in_stock: true },
+      { baseline_product: "Heinz Tomato Ketchup — 32oz/6pk", baseline_sku: "HNZ-TK-32-6", baseline_price: 24.99, brand: "Kraft Heinz", category: "Condiments & Sauces", baseline_pack_size: "32oz / 6pk", baseline_image: null, baseline_in_stock: true },
+      { baseline_product: "Cheerios Original Cereal — 18oz/10ct", baseline_sku: "GM-CHR-18-10", baseline_price: 44.20, brand: "General Mills", category: "Breakfast & Cereal", baseline_pack_size: "18oz / 10ct", baseline_image: null, baseline_in_stock: true },
+      { baseline_product: "Hershey's Milk Chocolate Bars — 1.55oz/36ct", baseline_sku: "HSH-MC-155-36", baseline_price: 32.88, brand: "Hershey's", category: "Candy & Chocolate", baseline_pack_size: "1.55oz / 36ct", baseline_image: null, baseline_in_stock: true },
+      { baseline_product: "Coca-Cola Classic — 12oz/24pk", baseline_sku: "CC-CL-12-24", baseline_price: 14.98, brand: "Coca-Cola", category: "Beverages", baseline_pack_size: "12oz / 24pk", baseline_image: null, baseline_in_stock: true },
+      { baseline_product: "Kraft Mac & Cheese Original — 7.25oz/18ct", baseline_sku: "KFT-MC-725-18", baseline_price: 19.80, brand: "Kraft Heinz", category: "Pasta & Grains", baseline_pack_size: "7.25oz / 18ct", baseline_image: null, baseline_in_stock: true },
+      { baseline_product: "Doritos Nacho Cheese — 1oz/40ct", baseline_sku: "DOR-NC-1-40", baseline_price: 24.50, brand: "Frito-Lay", category: "Snacks & Chips", baseline_pack_size: "1oz / 40ct", baseline_image: null, baseline_in_stock: true },
+      { baseline_product: "Campbell's Chicken Noodle Soup — 10.75oz/12ct", baseline_sku: "CMP-CNS-1075-12", baseline_price: 15.60, brand: "Campbell's", category: "Canned Goods", baseline_pack_size: "10.75oz / 12ct", baseline_image: null, baseline_in_stock: true },
+      { baseline_product: "Nestlé Toll House Chocolate Chips — 12oz/6ct", baseline_sku: "NST-TH-12-6", baseline_price: 21.90, brand: "Nestlé", category: "Baking & Cooking", baseline_pack_size: "12oz / 6ct", baseline_image: null, baseline_in_stock: true },
+    ];
+    const vendorPairs = [
+      { name: "ePallet", slug: "epallet" },
+      { name: "Walmart Business", slug: "walmart" },
+      { name: "WebstaurantStore", slug: "webstaurant" },
+      { name: "US Foods", slug: "usfoods" },
+      { name: "Costco Business", slug: "costco" },
+      { name: "McLane FoodService", slug: "mclane" },
+    ];
+    const deals = demoDeals.map(d => {
+      // Generate 2-4 competing vendors with prices
+      const numVendors = 2 + Math.floor(Math.random() * 3);
+      const shuffled = [...vendorPairs].sort(() => Math.random() - 0.5).slice(0, numVendors);
+      const allVendors = shuffled.map(vp => {
+        const savingsMultiplier = 0.6 + Math.random() * 0.55; // 60%-115% of baseline
+        const otherPrice = +(d.baseline_price * savingsMultiplier).toFixed(2);
+        const diff = +(otherPrice - d.baseline_price).toFixed(2);
+        const pct = +((diff / d.baseline_price) * 100).toFixed(1);
+        const confScore = 45 + Math.floor(Math.random() * 50);
+        return {
+          vendor_name: vp.name, vendor_slug: vp.slug,
+          product_name: d.baseline_product.replace("—", "-"),
+          sku: "ALT-" + Math.random().toString(36).substr(2,6).toUpperCase(),
+          unit_price: otherPrice, case_price: +(otherPrice * 1.05).toFixed(2),
+          pack_size: d.baseline_pack_size, image_url: null, product_url: null, in_stock: Math.random() > 0.15,
+          diff_vs_baseline: diff, pct_vs_baseline: pct,
+          confidence: { score: confScore, level: confScore >= 75 ? "high" : confScore >= 45 ? "medium" : "low", label: confScore >= 75 ? "Strong Match" : confScore >= 45 ? "Likely Match" : "Weak Match", icon: confScore >= 75 ? "🟢" : confScore >= 45 ? "🟡" : "🟠",
+            breakdown: { upc: { score: confScore > 70 ? 40 : 0, max: 40, detail: confScore > 70 ? "Exact UPC match" : "UPC missing" }, brand: { score: 15, max: 15, detail: "Exact brand match" }, pack_size: { score: confScore > 55 ? 25 : 12, max: 25, detail: confScore > 55 ? "Exact pack match" : "Partial pack match" }, name: { score: Math.min(20, Math.floor(confScore*0.2)), max: 20, detail: "Name similarity: " + Math.floor(confScore) + "%" } }
+          },
+          normalized: { price_per_oz: +(otherPrice / 48).toFixed(4), normalization: "computed", normalized_label: "$" + (otherPrice / 48).toFixed(4) + "/oz" },
+        };
+      });
+      allVendors.sort((a, b) => a.unit_price - b.unit_price);
+      const bestOther = allVendors[0];
+      const bestSavingsAbs = +(d.baseline_price - bestOther.unit_price).toFixed(2);
+      const bestSavingsPct = +((bestSavingsAbs / d.baseline_price) * 100).toFixed(1);
+      const bestConf = Math.max(...allVendors.map(v => v.confidence.score));
+      return {
+        ...d, best_other_price: bestOther.unit_price, best_other_vendor: bestOther.vendor_name,
+        best_other_vendor_slug: bestOther.vendor_slug, best_savings_abs: bestSavingsAbs,
+        best_savings_pct: bestSavingsPct, best_confidence: bestConf,
+        baseline_normalized: { price_per_oz: +(d.baseline_price / 48).toFixed(4), normalization: "computed", normalized_label: "$" + (d.baseline_price / 48).toFixed(4) + "/oz" },
+        all_vendors: allVendors, vendor_count: allVendors.length,
+      };
+    });
+    // Sort by savings pct
+    deals.sort((a, b) => b.best_savings_pct - a.best_savings_pct);
+    const cheaperCount = deals.filter(d => d.best_savings_abs > 0).length;
+    const moreExpCount = deals.filter(d => d.best_savings_abs < 0).length;
+    const avgSav = cheaperCount > 0 ? +(deals.filter(d => d.best_savings_abs > 0).reduce((s, d) => s + d.best_savings_pct, 0) / cheaperCount).toFixed(1) : 0;
+    return {
+      deals, total: deals.length, baseline_vendor: "amazon", baseline_vendor_name: "Amazon Business",
+      summary: { total_compared: deals.length, cheaper_elsewhere: cheaperCount, more_expensive_elsewhere: moreExpCount, avg_savings_pct: avgSav },
+    };
+  }
+
+  // ── /data-quality ──
+  if (base === '/data-quality') return {
+    vendors: [
+      { vendor_name: "ePallet", vendor_slug: "epallet", total_products: 3215, quality_score: 91.4, coverage: { upc: { count: 3029, pct: 94.2 }, pack_size_raw: { count: 3086, pct: 96.0 }, structured_pack: { count: 2893, pct: 90.0 }, unit_price: { count: 3183, pct: 99.0 }, brand: { count: 2829, pct: 88.0 }, category: { count: 3150, pct: 98.0 }, image: { count: 3054, pct: 95.0 }, url: { count: 3215, pct: 100.0 }, in_stock: { count: 2636, pct: 82.0 } }},
+      { vendor_name: "Amazon Business", vendor_slug: "amazon", total_products: 4820, quality_score: 85.8, coverage: { upc: { count: 3760, pct: 78.0 }, pack_size_raw: { count: 4096, pct: 85.0 }, structured_pack: { count: 3374, pct: 70.0 }, unit_price: { count: 4772, pct: 99.0 }, brand: { count: 4434, pct: 92.0 }, category: { count: 4627, pct: 96.0 }, image: { count: 4627, pct: 96.0 }, url: { count: 4820, pct: 100.0 }, in_stock: { count: 4241, pct: 88.0 } }},
+      { vendor_name: "Costco Business", vendor_slug: "costco", total_products: 987, quality_score: 88.1, coverage: { upc: { count: 809, pct: 82.0 }, pack_size_raw: { count: 868, pct: 88.0 }, structured_pack: { count: 789, pct: 80.0 }, unit_price: { count: 977, pct: 99.0 }, brand: { count: 888, pct: 90.0 }, category: { count: 948, pct: 96.0 }, image: { count: 938, pct: 95.0 }, url: { count: 987, pct: 100.0 }, in_stock: { count: 948, pct: 96.1 } }},
+      { vendor_name: "Walmart Business", vendor_slug: "walmart", total_products: 2948, quality_score: 72.5, coverage: { upc: { count: 2122, pct: 72.0 }, pack_size_raw: { count: 2005, pct: 68.0 }, structured_pack: { count: 1474, pct: 50.0 }, unit_price: { count: 2889, pct: 98.0 }, brand: { count: 2506, pct: 85.0 }, category: { count: 2742, pct: 93.0 }, image: { count: 2654, pct: 90.0 }, url: { count: 2948, pct: 100.0 }, in_stock: { count: 2683, pct: 91.0 } }},
+      { vendor_name: "US Foods", vendor_slug: "usfoods", total_products: 1847, quality_score: 70.2, coverage: { upc: { count: 1201, pct: 65.0 }, pack_size_raw: { count: 1478, pct: 80.0 }, structured_pack: { count: 1108, pct: 60.0 }, unit_price: { count: 1810, pct: 98.0 }, brand: { count: 1293, pct: 70.0 }, category: { count: 1736, pct: 94.0 }, image: { count: 1478, pct: 80.0 }, url: { count: 1847, pct: 100.0 }, in_stock: { count: 1570, pct: 85.0 } }},
+      { vendor_name: "WebstaurantStore", vendor_slug: "webstaurant", total_products: 2105, quality_score: 64.3, coverage: { upc: { count: 1221, pct: 58.0 }, pack_size_raw: { count: 1516, pct: 72.0 }, structured_pack: { count: 1053, pct: 50.0 }, unit_price: { count: 2063, pct: 98.0 }, brand: { count: 1579, pct: 75.0 }, category: { count: 1894, pct: 90.0 }, image: { count: 1684, pct: 80.0 }, url: { count: 2105, pct: 100.0 }, in_stock: { count: 1663, pct: 79.0 } }},
+      { vendor_name: "McLane FoodService", vendor_slug: "mclane", total_products: 1320, quality_score: 48.6, coverage: { upc: { count: 433, pct: 32.8 }, pack_size_raw: { count: 726, pct: 55.0 }, structured_pack: { count: 396, pct: 30.0 }, unit_price: { count: 1267, pct: 96.0 }, brand: { count: 818, pct: 62.0 }, category: { count: 1122, pct: 85.0 }, image: { count: 792, pct: 60.0 }, url: { count: 1320, pct: 100.0 }, in_stock: { count: 977, pct: 74.0 } }},
+    ],
+    overall: { total_products: 17242, avg_quality_score: 74.4, vendor_count: 7 },
+  };
+
+  // ── /products ──
+  if (base === '/products') {
+    const demoProducts = [];
+    const names = [
+      ["Barilla Penne Rigate", "Barilla", "Pasta & Grains", 12.80],
+      ["Ghirardelli Dark Chocolate Chips 60%", "Ghirardelli", "Baking & Cooking", 38.99],
+      ["Lay's Classic Potato Chips 1oz/40ct", "Frito-Lay", "Snacks & Chips", 18.50],
+      ["Del Monte Canned Green Beans 14.5oz/12ct", "Del Monte", "Canned Goods", 14.20],
+      ["Heinz Yellow Mustard 20oz/6pk", "Kraft Heinz", "Condiments & Sauces", 16.80],
+      ["Honey Nut Cheerios 10.8oz/12ct", "General Mills", "Breakfast & Cereal", 42.60],
+      ["Reese's Peanut Butter Cups 1.5oz/36ct", "Hershey's", "Candy & Chocolate", 34.20],
+      ["Pepsi Cola 12oz/24pk", "Pepsi Co", "Beverages", 13.48],
+      ["Velveeta Shells & Cheese 12oz/12ct", "Kraft Heinz", "Pasta & Grains", 28.40],
+      ["Tostitos Scoops 1oz/40ct", "Frito-Lay", "Snacks & Chips", 22.80],
+      ["Del Monte Diced Tomatoes 14.5oz/12ct", "Del Monte", "Canned Goods", 12.60],
+      ["French's Classic Yellow Mustard 20oz/6pk", "McCormick", "Condiments & Sauces", 18.20],
+    ];
+    const page = parseInt(params.get('page') || '1');
+    const perPage = parseInt(params.get('per_page') || '50');
+    for (let i = 0; i < Math.min(perPage, names.length); i++) {
+      const [name, brand, cat, price] = names[i % names.length];
+      const vendorIdx = i % DEMO_VENDORS.length;
+      demoProducts.push({
+        id: `prod-${(page-1)*perPage + i}`, sku: "SKU-" + Math.random().toString(36).substr(2,7).toUpperCase(),
+        product_name: name, brand, category: cat, unit_price: +(price + (Math.random()*5 - 2.5)).toFixed(2),
+        case_price: +(price * 1.1).toFixed(2), in_stock: Math.random() > 0.12,
+        price_changed: Math.random() > 0.8, pack_size_raw: `${Math.floor(Math.random()*20+4)}oz / ${Math.floor(Math.random()*12+4)}ct`,
+        vendors: { name: DEMO_VENDORS[vendorIdx].name, slug: DEMO_VENDORS[vendorIdx].slug },
+      });
+    }
+    return { products: demoProducts, total: 17242, page, per_page: perPage, total_pages: Math.ceil(17242 / perPage) };
+  }
+
+  // ── Default fallback ──
+  return null;
+}
+
 // ── Debounce ───────────────────────────────────────────────────────
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 const debouncedLoadProducts = debounce(() => loadProducts(), 300);
 
 // ── API Helpers ────────────────────────────────────────────────────
 async function api(path, opts = {}) {
+  // Demo mode intercept — return fake data instead of hitting server
+  if (DEMO_MODE && opts.method !== 'POST') {
+    const demoResult = getDemoResponse(path);
+    if (demoResult !== null) {
+      // Simulate network delay for realism
+      await new Promise(r => setTimeout(r, 80 + Math.random() * 200));
+      return demoResult;
+    }
+  }
   const res = await fetch(API + path, {
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
